@@ -1,4 +1,4 @@
-﻿Quick start
+Quick start
 ===========
 
 .. code-block:: python

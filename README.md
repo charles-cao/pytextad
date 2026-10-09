@@ -1,4 +1,4 @@
-﻿# PyTextAD: Text Anomaly Detection in Python
+# PyTextAD: Text Anomaly Detection in Python
 
 [![PyPI](https://img.shields.io/pypi/v/pytextad.svg)](https://pypi.org/project/pytextad/)
 [![Documentation](https://readthedocs.org/projects/pytextad/badge/?version=latest)](https://pytextad.readthedocs.io)

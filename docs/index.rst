@@ -1,4 +1,4 @@
-﻿PyTextAD: Text Anomaly Detection in Python
+PyTextAD: Text Anomaly Detection in Python
 ==========================================
 
 **PyTextAD** detects anomalies in text at the document and the token level. All

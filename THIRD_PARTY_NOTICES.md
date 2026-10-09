@@ -1,4 +1,4 @@
-﻿# Third-party notices
+# Third-party notices
 
 ## CVDD (pytextad/cvdd.py)
 Re-implemented from https://github.com/lukasruff/CVDD-PyTorch

@@ -1,4 +1,4 @@
-﻿Implemented methods
+Implemented methods
 ===================
 
 Default hyperparameters are those of the official code. Where the official code and

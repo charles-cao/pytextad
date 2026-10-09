@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 ## 0.1.0 (unreleased)
 - First release: CVDD, DATE, FATE, RSRAE with a PyOD-style API.

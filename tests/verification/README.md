@@ -1,4 +1,4 @@
-﻿# Equivalence checks against the original implementations
+# Equivalence checks against the original implementations
 
 Users of PyTextAD do not need to run these. They exist for maintainers: re-run them
 whenever a detector's code changes, to prove it still reproduces the original code.
