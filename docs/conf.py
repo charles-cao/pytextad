@@ -1,8 +1,11 @@
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.abspath(".."))
-from pytextad.version import __version__  # noqa: E402
+# read the version without importing pytextad (its dependencies are not installed on Read the Docs)
+with open(os.path.join(os.path.dirname(__file__), "..", "pytextad", "version.py"), encoding="utf-8") as f:
+    __version__ = re.search(r'__version__\s*=\s*"([^"]+)"', f.read()).group(1)
 
 project = "PyTextAD"
 author = "Yang Cao"
@@ -13,6 +16,10 @@ extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon", "sphinx.ext.viewcode"
 autodoc_mock_imports = ["torch", "transformers", "sklearn", "numpy"]
 autodoc_member_order = "bysource"
 autodoc_default_options = {"members": True, "inherited-members": True, "show-inheritance": True}
+html_theme = "furo"
+html_title = f"PyTextAD {version}"
+source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
+exclude_patterns = ["_build"]
 
 
 def _module_docstring_as_literal(app, what, name, obj, options, lines):
@@ -23,7 +30,3 @@ def _module_docstring_as_literal(app, what, name, obj, options, lines):
 
 def setup(app):
     app.connect("autodoc-process-docstring", _module_docstring_as_literal)
-html_theme = "furo"
-html_title = f"PyTextAD {version}"
-source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
-exclude_patterns = ["_build"]
