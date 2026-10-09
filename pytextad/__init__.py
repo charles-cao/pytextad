@@ -6,7 +6,7 @@ from .models.fate import FATE
 from .models.rsrae import RSRAE
 from .models.wrappers import DocumentDetector, TokenDetector
 from .utils.embeddings import SentenceEmbedder, TokenEmbedder, mean_pool, words_from_subwords
-from . import metrics
+from . import datasets, metrics
 
 __all__ = ["__version__", "CVDD", "DATE", "FATE", "RSRAE", "DocumentDetector", "TokenDetector",
-           "SentenceEmbedder", "TokenEmbedder", "mean_pool", "words_from_subwords", "metrics"]
+           "SentenceEmbedder", "TokenEmbedder", "mean_pool", "words_from_subwords", "metrics", "datasets"]

@@ -10,6 +10,7 @@ numerically against its original code.
 
    install
    quickstart
+   datasets
    models
    api
    verification

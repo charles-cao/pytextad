@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.0
+- `pytextad.datasets`: `load_dataset` for six datasets with word-level anomaly labels -
+  `sms_spam`, `restaurant_review`, `grammar_correction` (Cao et al., WWW 2026), `hate_speech`,
+  `olid`, `restaurant_review2` (CA-PTD experiments) - downloaded from the Hugging Face Hub and
+  verified by SHA-256 and document/word counts.
+- `TextADDataset`: words, word labels, document labels and original texts; `subset`,
+  `normal_indices` / `anomalous_indices`, `stats`, `retokenize` (one word segmentation for
+  normal and anomalous documents), `to_jsonl`.
+- `load_local` for JSONL, JSON and TokenCore `.npy` files; `TextADDataset.from_lists`.
+- `examples/token_level.py`: PyOD detectors on a dataset, token and document metrics.
+
 ## 0.2.0
 - `SentenceEmbedder`: CLS, mean or last-token sentence vectors from any Hugging Face model.
 - `TokenEmbedder`: word-level vectors (`word_pooling="max" | "mean" | "first"`), on-disk caching

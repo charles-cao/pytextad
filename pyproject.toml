@@ -23,6 +23,7 @@ dependencies = [
     "scikit-learn>=1.0",
     "torch>=1.13",
     "transformers>=4.30",
+    "huggingface_hub>=0.20",
 ]
 
 [project.optional-dependencies]

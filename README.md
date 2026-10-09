@@ -50,6 +50,29 @@ print(format_results({"KNN": res}))           # token and document AUROC / AP / 
 
 A runnable example on AG News: `python examples/quickstart.py`.
 
+## Datasets
+
+Benchmark datasets with a 0/1 label for every word, downloaded once from the Hugging Face Hub
+and checked against a checksum:
+
+```python
+from pytextad.datasets import load_dataset
+ds = load_dataset("restaurant_review")     # see list_datasets() for all six
+ds.tokens, ds.token_labels, ds.labels       # words, word labels, document labels
+```
+
+| Dataset | Documents | Anomalous | Anomaly |
+|---|---|---|---|
+| `sms_spam` | 4,518 | 393 | injected gibberish |
+| `restaurant_review` | 1,100 | 50 | negative sentiment |
+| `grammar_correction` | 300 | 30 | grammatical errors |
+| `hate_speech` | 4,302 | 140 | hateful or offensive words |
+| `olid` | 650 | 30 | offensive words |
+| `restaurant_review2` | 520 | 25 | negative sentiment |
+
+The training/test split is up to you; `examples/token_level.py` runs PyOD detectors on them.
+Your own data: `TextADDataset.from_lists(tokens, token_labels)` or `load_local("file.jsonl")`.
+
 ## Implemented methods
 
 | Method | Year | Input | Token scores | Reference |
