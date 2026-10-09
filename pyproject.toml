@@ -1,0 +1,44 @@
+﻿[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pytextad"
+dynamic = ["version"]
+description = "A unified library for text anomaly detection (document- and token-level), in the style of PyOD"
+readme = "README.md"
+license = "BSD-2-Clause"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+authors = [{name = "Yang Cao"}]
+requires-python = ">=3.9"
+keywords = ["anomaly detection", "outlier detection", "text", "NLP", "token-level"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "numpy>=1.21",
+    "scikit-learn>=1.0",
+    "torch>=1.13",
+    "transformers>=4.30",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+docs = ["sphinx>=7", "furo", "myst-parser"]
+
+[project.urls]
+Homepage = "https://github.com/charles-cao/pytextad"
+Documentation = "https://pytextad.readthedocs.io"
+
+[tool.setuptools.dynamic]
+version = {attr = "pytextad.version.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["pytextad*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--ignore=tests/verification"
