@@ -18,13 +18,53 @@ is anomalous. How the documents are split into training and test data is up to y
    ds.labels              # one 0/1 label per document
    ds.texts[0]            # original text
 
-   # e.g. train on half of the normal documents, test on all the others
+Running token-level detection
+-----------------------------
+
+A complete run on one dataset: split the documents, embed every word, fit a detector on
+the training words, and evaluate at the token and document levels.
+
+.. code-block:: python
+
    import numpy as np
-   rng = np.random.RandomState(0)
-   normal = rng.permutation(ds.normal_indices)
-   train_idx = normal[: len(normal) // 2]
+   from pyod.models.knn import KNN
+   from pytextad import TokenDetector, TokenEmbedder
+   from pytextad.datasets import load_dataset
+   from pytextad.metrics import evaluate, format_results
+
+   ds = load_dataset("restaurant_review")
+
+   # train on half of the normal documents, test on all the others
+   # (the split of split_anomaly_data in the TokenCore code)
+   np.random.seed(42)
+   normal = ds.normal_indices
+   train_idx = np.random.choice(normal, size=len(normal) // 2, replace=False)
    test_idx = np.setdiff1d(np.arange(len(ds)), train_idx)
    train, test = ds.subset(train_idx), ds.subset(test_idx)
+
+   # one vector per word (max over its sub-words)
+   emb = TokenEmbedder("bert-base-uncased", word_pooling="max")
+   X_train, _ = emb.transform(train.tokens, cache="train.npz")
+   X_test, kept = emb.transform(test.tokens, cache="test.npz")
+   # words beyond 512 sub-words have no vector: keep the labels of the embedded words
+   y_test = [labels[k] for labels, k in zip(test.token_labels, kept)]
+
+   res = evaluate(TokenDetector(KNN()), X_train, X_test, token_labels=y_test, seeds=(0, 1, 2))
+   print(format_results({"KNN": res}))
+
+The output has one line per level, each with AUROC, AP and FPR at 95 % TPR as mean and
+standard deviation over the seeds:
+
+* ``token``: all test words pooled together;
+* ``document[max]`` and ``document[mean]``: each document scored by the maximum or the
+  mean of its word scores;
+* ``document``: the detector's own document score (here the same as ``document[max]``).
+
+``examples/token_level.py`` runs this for any dataset and several detectors:
+
+.. code-block:: bash
+
+   python examples/token_level.py --dataset restaurant_review --model bert-base-uncased
 
 Built-in datasets
 -----------------
