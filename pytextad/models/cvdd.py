@@ -96,6 +96,8 @@ class _CVDDNet(nn.Module):
 
 
 class CVDD(BaseTextDetector):
+    supports_token = True
+
 
     def __init__(self, n_heads=3, attention_size=150, lambda_p=1.0,
                  alpha_scheduler="logarithmic", n_epochs=100, lr=0.01, lr_milestones=(40,),

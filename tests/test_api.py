@@ -11,30 +11,7 @@ import torch
 
 from pytextad import CVDD, DATE, FATE, RSRAE
 
-DEV = os.environ.get("PYTEXTAD_DEVICE", "cpu")          # PYTEXTAD_DEVICE=cuda pytest ... to test on GPU
-WORDS = ["stock", "market", "bank", "price", "trade", "goal", "match", "team", "player", "score"]
-
-
-def _texts(n, words, seed):
-    rng = np.random.RandomState(seed)
-    return [" ".join(rng.choice(words, rng.randint(5, 30))) for _ in range(n)]
-
-
-@pytest.fixture(scope="module")
-def tiny_bert(tmp_path_factory):
-    from transformers import BertConfig, BertModel, BertTokenizerFast
-    d = tmp_path_factory.mktemp("tinybert")
-    vocab = {w: i for i, w in enumerate(["[PAD]", "[UNK]", "[CLS]", "[SEP]", "[MASK]", *WORDS])}
-    try:
-        tok = BertTokenizerFast(vocab=vocab, do_lower_case=True)
-    except TypeError:                                   # transformers 4.x
-        f = d / "vocab.txt"; f.write_text("\n".join(vocab))
-        tok = BertTokenizerFast(vocab_file=str(f), do_lower_case=True)
-    torch.manual_seed(0)
-    BertModel(BertConfig(vocab_size=len(vocab), hidden_size=32, num_hidden_layers=1, num_attention_heads=2,
-                         intermediate_size=64)).save_pretrained(d)
-    tok.save_pretrained(d)
-    return str(d), tok
+from conftest import DEV, WORDS, make_texts as _texts
 
 
 def _check_api(det, Xtr, Xte):

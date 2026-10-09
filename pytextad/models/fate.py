@@ -71,12 +71,15 @@ def _endless(idx):
 
 
 class FATE(BaseTextDetector):
+    supports_token = False
+
 
     def __init__(self, encoder="sentence-transformers/all-MiniLM-L6-v2", max_length=128,
                  attention_size=150, n_heads=5, top_k=0.1, margin=5.0, n_ref=5000,
                  include_regularization=True, mask_padding=False, lr=1e-6, batch_size=16,
-                 n_epochs=4, contamination=0.1, random_state=0, device=None, verbose=False):
-        """encoder: Hugging Face id or local path of the (Sentence-)BERT encoder; it is fine-tuned."""
+                 n_epochs=4, cache_dir=None, contamination=0.1, random_state=0, device=None, verbose=False):
+        """encoder  : Hugging Face id or local path of the (Sentence-)BERT encoder; it is fine-tuned.
+        cache_dir: Hugging Face cache folder, as in from_pretrained(..., cache_dir=...)."""
         super().__init__(contamination, random_state, device, verbose)
         self.encoder = encoder
         self.max_length = max_length
@@ -90,6 +93,7 @@ class FATE(BaseTextDetector):
         self.lr = lr
         self.batch_size = batch_size
         self.n_epochs = n_epochs
+        self.cache_dir = cache_dir
 
     # ------------------------------------------------------------------ pieces
     def _tok(self, texts):
@@ -99,8 +103,8 @@ class FATE(BaseTextDetector):
 
     def _build(self):
         from transformers import AutoModel, AutoTokenizer
-        self.tokenizer_ = AutoTokenizer.from_pretrained(self.encoder)
-        enc = AutoModel.from_pretrained(self.encoder)
+        self.tokenizer_ = AutoTokenizer.from_pretrained(self.encoder, cache_dir=self.cache_dir)
+        enc = AutoModel.from_pretrained(self.encoder, cache_dir=self.cache_dir)
         self.net_ = _FATENet(enc, self.attention_size, self.n_heads, self.top_k, self.mask_padding).to(self.device)
 
     def _loss(self, input_ids, attention_mask, yb):

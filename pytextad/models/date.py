@@ -52,7 +52,7 @@ import torch.nn.functional as F
 from transformers import ElectraConfig, ElectraModel
 
 from .base import BaseTextDetector
-from ..utils.embeddings import words_from_subwords
+from ..utils.embeddings import encode_words, words_from_subwords
 
 Text = Union[str, Sequence[str]]
 
@@ -80,15 +80,18 @@ class _DATENet(nn.Module):
 
 
 class DATE(BaseTextDetector):
+    supports_token = True
+
 
     def __init__(self, tokenizer="bert-base-uncased", max_len=128, stride=0.8,
                  n_masks=50, mask_ratio=0.5, masks=None,
                  hidden=256, layers=4, heads=4, intermediate=1024, emb=128, dropout=0.5,
                  rtd_weight=50.0, rmd_weight=100.0, lr=1e-5, weight_decay=0.1,
                  max_grad_norm=1.0, n_epochs=20, batch_size=16, use_attention_mask=False,
-                 contamination=0.1, random_state=0, device=None, verbose=False):
+                 cache_dir=None, contamination=0.1, random_state=0, device=None, verbose=False):
         """
         tokenizer : HF name or path, a vocab.txt path, or a fast tokenizer object.
+        cache_dir : Hugging Face cache folder, as in from_pretrained(..., cache_dir=...).
         masks     : None -> K random masks from random_state, or the path of the official
                     experiments/pseudo_labels128_p50.pkl to use the exact official set.
         """
@@ -105,6 +108,7 @@ class DATE(BaseTextDetector):
         self.lr, self.weight_decay, self.max_grad_norm = lr, weight_decay, max_grad_norm
         self.n_epochs, self.batch_size = n_epochs, batch_size
         self.use_attention_mask = use_attention_mask
+        self.cache_dir = cache_dir
 
     # ------------------------------------------------------------------ setup
     def _load_tokenizer(self):
@@ -120,7 +124,7 @@ class DATE(BaseTextDetector):
                 if tok is None or len(tok) < len(vocab):  # transformers 4.x
                     tok = BertTokenizerFast(vocab_file=self.tokenizer, do_lower_case=True)
             else:
-                tok = AutoTokenizer.from_pretrained(tok, use_fast=True)
+                tok = AutoTokenizer.from_pretrained(tok, use_fast=True, cache_dir=self.cache_dir)
         if not getattr(tok, "is_fast", False):
             raise ValueError("A fast tokenizer is required (for word alignment).")
         self.tok_ = tok
@@ -149,10 +153,11 @@ class DATE(BaseTextDetector):
     def _encode(self, texts: List[Text]):
         out = []
         for t in texts:
-            split = not isinstance(t, str)
-            enc = self.tok_(list(t) if split else t, is_split_into_words=split,
-                            add_special_tokens=False, truncation=False)
-            out.append((enc["input_ids"], enc.word_ids()))
+            if isinstance(t, str):
+                enc = self.tok_(t, add_special_tokens=False, truncation=False)
+                out.append((enc["input_ids"], enc.word_ids()))
+            else:   # list of words: tokenised as running text, sub-words mapped back to words
+                out.append(encode_words(self.tok_, list(t)))
         return out
 
     def _windows(self, ids):

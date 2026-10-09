@@ -3,5 +3,6 @@ from .cvdd import CVDD
 from .date import DATE
 from .fate import FATE
 from .rsrae import RSRAE
+from .wrappers import DocumentDetector, TokenDetector
 
-__all__ = ["BaseTextDetector", "CVDD", "DATE", "FATE", "RSRAE"]
+__all__ = ["BaseTextDetector", "CVDD", "DATE", "FATE", "RSRAE", "DocumentDetector", "TokenDetector"]

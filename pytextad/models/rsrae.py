@@ -112,6 +112,8 @@ def _norm_loss(diff, kind):
 
 
 class RSRAE(BaseTextDetector):
+    supports_token = False
+
 
     def __init__(self, hidden_layer_sizes=(32, 64, 128), intrinsic_size=10,
                  loss_norm_type="L21", norm_type="L21", all_alt=True, enforce_proj=True,

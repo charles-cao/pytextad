@@ -6,7 +6,8 @@ Conventions (identical to PyOD):
   * decision_function(X) returns one score per sample; higher = more anomalous.
   * predict(X) returns 0/1 using ``threshold_`` (the (1 - contamination) quantile of
     the training scores).
-Detectors that can score tokens additionally implement ``token_scores``.
+Detectors that can score tokens set ``supports_token = True`` and implement
+``token_scores``; all detectors give document scores through ``decision_function``.
 """
 
 import abc
@@ -17,6 +18,9 @@ import torch
 
 
 class BaseTextDetector(abc.ABC):
+
+    #: True if the detector implements ``token_scores`` (token-level detection).
+    supports_token = False
 
     def __init__(self, contamination=0.1, random_state=0, device=None, verbose=False):
         if not 0.0 < contamination <= 0.5:
@@ -36,6 +40,11 @@ class BaseTextDetector(abc.ABC):
     @abc.abstractmethod
     def decision_function(self, X):
         """Anomaly score of every sample in ``X``; higher means more anomalous."""
+
+    def token_scores(self, X):
+        """One array of token anomaly scores per document (token-level detectors only)."""
+        raise NotImplementedError(f"{type(self).__name__} is a document-level detector; "
+                                  "use TokenDetector to score tokens with a vector detector")
 
     # ------------------------------------------------------------------ shared
     def _set_seed(self):

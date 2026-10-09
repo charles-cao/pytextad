@@ -1,6 +1,22 @@
 Implemented methods
 ===================
 
+Document and token level
+------------------------
+
+All detectors give document scores. Token scores (``supports_token = True``):
+
+=====================  ==============  ============  =========================================
+Detector               Document level  Token level   Note
+=====================  ==============  ============  =========================================
+DATE                   yes             yes           token score = P(token replaced) (extension)
+CVDD                   yes             yes           token-to-context distance (extension)
+RSRAE                  yes             via wrapper   ``TokenDetector(RSRAE())``
+FATE                   yes             no            end-to-end document model
+DocumentDetector(any)  yes             no            vector detector on sentence embeddings
+TokenDetector(any)     yes (aggreg.)   yes           vector detector on token embeddings
+=====================  ==============  ============  =========================================
+
 Default hyperparameters are those of the official code. Where the official code and
 the paper disagree, the code is followed; the module docstrings (see :doc:`api`)
 list every such case and every deliberate deviation.

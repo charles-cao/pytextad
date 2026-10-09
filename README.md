@@ -30,19 +30,22 @@ PyTorch build that matches your CUDA version first (https://pytorch.org).
 ## Quick start
 
 ```python
-from pytextad import CVDD, DATE, FATE, RSRAE, TokenEmbedder, mean_pool
+from pytextad import CVDD, DATE, FATE, RSRAE, DocumentDetector, TokenDetector
+from pytextad import SentenceEmbedder, TokenEmbedder
+from pytextad.metrics import evaluate, format_results
+from pyod.models.knn import KNN
 
-# frozen token embeddings from any Hugging Face encoder
-emb = TokenEmbedder("bert-base-uncased")
-H_train, _ = emb.transform(train_texts)
-H_test, _ = emb.transform(test_texts)
+# document level: any PyOD detector on sentence embeddings, or an end-to-end text detector
+scores = DocumentDetector(KNN(), embedder=SentenceEmbedder("bert-base-uncased")) \
+    .fit(train_texts).decision_function(test_texts)                     # higher = more anomalous
+scores = DATE().fit(train_texts).decision_function(test_texts)
 
-scores = CVDD().fit(H_train).decision_function(H_test)                       # higher = more anomalous
-scores = RSRAE().fit(mean_pool(H_train)).decision_function(mean_pool(H_test))
-scores = DATE().fit(train_texts).decision_function(test_texts)               # raw text in, trains its own model
-scores = FATE().fit(texts, y).decision_function(test_texts)                  # few-shot: y = 1 for labelled anomalies
-
-word_scores = DATE().fit(train_texts).token_scores([t.split() for t in test_texts])
+# token level: one embedding per word, any vector detector, token scores aggregated per document
+emb = TokenEmbedder("bert-base-cased", word_pooling="max")
+X_train, _ = emb.transform(train_words, cache="train.npz")               # lists of words in
+X_test, _ = emb.transform(test_words, cache="test.npz")
+res = evaluate(TokenDetector(KNN()), X_train, X_test, token_labels=test_labels, seeds=(0, 1, 2))
+print(format_results({"KNN": res}))           # token and document AUROC / AP / FPR95, mean ± std
 ```
 
 A runnable example on AG News: `python examples/quickstart.py`.
@@ -52,9 +55,13 @@ A runnable example on AG News: `python examples/quickstart.py`.
 | Method | Year | Input | Token scores | Reference |
 |---|---|---|---|---|
 | CVDD | 2019 | frozen token embeddings | yes | Ruff et al., *Self-Attentive, Multi-Context One-Class Classification for Unsupervised Anomaly Detection on Text*, ACL 2019 |
-| RSRAE | 2020 | document vectors | no | Lai et al., *Robust Subspace Recovery Layer for Unsupervised Anomaly Detection*, ICLR 2020 |
+| RSRAE | 2020 | vectors | via `TokenDetector` | Lai et al., *Robust Subspace Recovery Layer for Unsupervised Anomaly Detection*, ICLR 2020 |
 | DATE | 2021 | raw text | yes | Manolache et al., *DATE: Detecting Anomalies in Text via Self-Supervision of Transformers*, NAACL 2021 |
 | FATE | 2023 | raw text (+ few labelled anomalies) | no | Das et al., *Few-shot Anomaly Detection in Text with Deviation Learning*, ICONIP 2023 |
+
+Any vector detector (all of PyOD, or your own with `fit` / `decision_function`) works on text
+through `DocumentDetector` (sentence embeddings) and `TokenDetector` (token embeddings, token
+scores aggregated per document).
 
 Default hyperparameters are those of the official code. Each module's docstring
 lists where the official code and the paper disagree and which one we follow.
