@@ -71,6 +71,64 @@ def _endless(idx):
 
 
 class FATE(BaseTextDetector):
+    """Few-shot Anomaly detection in TExt with deviation learning (Das et al., ICONIP 2023).
+
+    A sentence encoder with multi-head self-attention is fine-tuned so that a few
+    labelled anomalies score far above a Gaussian reference while normal documents stay
+    close to it.
+
+    Parameters
+    ----------
+    encoder : str, default="sentence-transformers/all-MiniLM-L6-v2"
+        Hugging Face name or path of the encoder, fine-tuned end to end.
+    max_length : int, default=128
+        Inputs are padded or truncated to this many tokens.
+    attention_size : int, default=150
+        Hidden size of the self-attention layer.
+    n_heads : int, default=5
+        Number of attention heads.
+    top_k : float, default=0.1
+        The score is the mean of the top ``top_k`` fraction of absolute features.
+    margin : float, default=5.0
+        Deviation margin for anomalies.
+    n_ref : int, default=5000
+        Size of the Gaussian reference sample, redrawn for every batch.
+    include_regularization : bool, default=True
+        Add the attention orthogonality penalty.
+    mask_padding : bool, default=False
+        Exclude padding from the attention (the official code does not).
+    lr : float, default=1e-6
+        Adam learning rate.
+    batch_size : int, default=16
+        Mini-batch size (half normal, half labelled anomalies).
+    n_epochs : int, default=4
+        Training epochs.
+    cache_dir : str or None, default=None
+        Hugging Face cache folder for the encoder.
+    contamination : float, default=0.1
+        Expected proportion of anomalies; sets ``threshold_`` for ``predict``.
+    random_state : int or None, default=0
+        Seed for all random number generators.
+    device : str or None, default=None
+        "cuda" or "cpu"; None picks CUDA when available.
+    verbose : bool, default=False
+        Print training progress.
+
+    Attributes
+    ----------
+    decision_scores_ : numpy.ndarray
+        Anomaly scores of the training data (higher = more anomalous).
+    threshold_ : float
+        Score above which ``predict`` returns 1.
+    labels_ : numpy.ndarray
+        Binary labels of the training data.
+
+    Notes
+    -----
+    ``X`` is a list of strings; pass ``y`` (1 = labelled anomaly) to ``fit``. Without
+    labelled anomalies only the normal-data term is trained (the "FATE*" variant).
+    Differences from the official code are listed in :doc:`/faithfulness`.
+    """
     supports_token = False
 
 
@@ -78,8 +136,6 @@ class FATE(BaseTextDetector):
                  attention_size=150, n_heads=5, top_k=0.1, margin=5.0, n_ref=5000,
                  include_regularization=True, mask_padding=False, lr=1e-6, batch_size=16,
                  n_epochs=4, cache_dir=None, contamination=0.1, random_state=0, device=None, verbose=False):
-        """encoder  : Hugging Face id or local path of the (Sentence-)BERT encoder; it is fine-tuned.
-        cache_dir: Hugging Face cache folder, as in from_pretrained(..., cache_dir=...)."""
         super().__init__(contamination, random_state, device, verbose)
         self.encoder = encoder
         self.max_length = max_length
@@ -132,7 +188,7 @@ class FATE(BaseTextDetector):
 
     # ------------------------------------------------------------------ API
     def fit(self, X: List[str], y: Optional[np.ndarray] = None):
-        """X: texts. y: 1 = labelled anomaly, 0 = inlier (None = all inliers -> FATE*)."""
+        """Fit on texts ``X``; ``y`` marks labelled anomalies (1) and inliers (0). Returns ``self``."""
         self._set_seed()
         X = list(X)
         y = np.zeros(len(X), dtype=int) if y is None else np.asarray(y, dtype=int)
@@ -166,6 +222,7 @@ class FATE(BaseTextDetector):
 
     @torch.no_grad()
     def decision_function(self, X: List[str], batch_size=16):
+        """Anomaly score of each document in ``X`` (higher = more anomalous)."""
         self.net_.eval()
         X = list(X)
         out = []

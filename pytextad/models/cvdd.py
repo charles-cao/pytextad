@@ -96,6 +96,57 @@ class _CVDDNet(nn.Module):
 
 
 class CVDD(BaseTextDetector):
+    """Context Vector Data Description (Ruff et al., ACL 2019).
+
+    Self-attentive one-class model on frozen token embeddings. Each of ``n_heads``
+    attention heads summarises a document into one vector, which is compared with a
+    learned context vector; the anomaly score is the mean cosine distance over heads.
+
+    Parameters
+    ----------
+    n_heads : int, default=3
+        Number of attention heads and context vectors.
+    attention_size : int, default=150
+        Hidden size of the self-attention layer.
+    lambda_p : float, default=1.0
+        Weight of the orthogonality penalty on the attention matrix.
+    alpha_scheduler : {"logarithmic", "soft", "linear", "hard"}, default="logarithmic"
+        Annealing schedule of the softmax temperature over heads.
+    n_epochs : int, default=100
+        Training epochs.
+    lr : float, default=0.01
+        Adam learning rate.
+    lr_milestones : tuple of int, default=(40,)
+        Epochs at which the learning rate is multiplied by 0.1.
+    batch_size : int, default=64
+        Mini-batch size.
+    weight_decay : float, default=5e-7
+        Adam weight decay.
+    contamination : float, default=0.1
+        Expected proportion of anomalies; sets ``threshold_`` for ``predict``.
+    random_state : int or None, default=0
+        Seed for all random number generators.
+    device : str or None, default=None
+        "cuda" or "cpu"; None picks CUDA when available.
+    verbose : bool, default=False
+        Print training progress.
+
+    Attributes
+    ----------
+    decision_scores_ : numpy.ndarray
+        Anomaly scores of the training data (higher = more anomalous).
+    threshold_ : float
+        Score above which ``predict`` returns 1.
+    labels_ : numpy.ndarray
+        Binary labels of the training data.
+
+    Notes
+    -----
+    ``X`` is a list of ``[n_tokens, dim]`` arrays, one per document, for example from
+    :class:`~pytextad.utils.embeddings.TokenEmbedder`. ``token_scores`` is an extension
+    that is not part of the paper. Differences from the official code are listed in
+    :doc:`/faithfulness`.
+    """
     supports_token = True
 
 
@@ -140,6 +191,7 @@ class CVDD(BaseTextDetector):
 
     # ------------------------------------------------------------------ training
     def fit(self, X, y=None):
+        """Fit the detector on training documents ``X`` and return ``self``."""
         self._set_seed()
         X = self._check(X)
         dim = X[0].shape[1]
@@ -204,7 +256,7 @@ class CVDD(BaseTextDetector):
         return self._forward_all(X)[0]
 
     def decision_function(self, X):
-        """Official 'context_dist_mean' score: mean cosine distance over heads."""
+        """Anomaly score of each document in ``X`` (higher = more anomalous)."""
         return self.head_scores(X).mean(1)
 
     def attention(self, X):
@@ -213,7 +265,7 @@ class CVDD(BaseTextDetector):
 
     @torch.no_grad()
     def token_scores(self, X):
-        """EXTENSION (not in the paper): per-token min_k 0.5 (1 - cos(h_t, c_k))."""
+        """Token scores: cosine distance of each token to its nearest context vector (extension, not in the paper)."""
         X = self._check(X)
         C = F.normalize(self.net_.c.detach(), dim=1).cpu().numpy()
         out = []

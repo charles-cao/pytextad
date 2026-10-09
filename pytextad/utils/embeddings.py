@@ -115,21 +115,35 @@ class _HFEmbedder:
 
 # ----------------------------------------------------------------------------- token level
 class TokenEmbedder(_HFEmbedder):
+    """Frozen contextual embeddings of every token or word, from any Hugging Face model.
+
+    Parameters
+    ----------
+    model_name_or_path : str
+        Hugging Face name (``bert-base-uncased``, ``roberta-base``,
+        ``Qwen/Qwen3-Embedding-0.6B``, ...) or local folder of an encoder or decoder.
+    layer : int, default=-1
+        Hidden layer to return (-1 = last).
+    max_length : int, default=512
+        Longer documents are truncated; ``n_truncated_`` counts them.
+    batch_size : int, default=32
+        Documents per forward pass.
+    keep_special_tokens : bool, default=False
+        Keep [CLS]/[SEP]-like positions (sub-word mode only).
+    word_pooling : {None, "max", "mean", "first"}, default=None
+        None returns one vector per sub-word; otherwise one vector per word, pooling its
+        sub-words (documents must then be word lists; TokenCore uses "max").
+    device : str or None, default=None
+        "cuda" or "cpu"; None picks CUDA when available.
+    dtype : torch.dtype, default=torch.float32
+        Model precision.
+    cache_dir : str or None, default=None
+        Hugging Face cache folder.
+    """
 
     def __init__(self, model_name_or_path, layer=-1, max_length=512, batch_size=32,
                  keep_special_tokens=False, word_pooling=None, device=None, dtype=torch.float32,
                  cache_dir=None):
-        """
-        model_name_or_path : any Hugging Face encoder or decoder (bert-base-uncased, roberta-base,
-                             Qwen/Qwen3-Embedding-0.6B, ...), or a local folder.
-        layer              : hidden layer to return (-1 = last).
-        max_length         : longer documents are truncated; ``n_truncated_`` counts them.
-        keep_special_tokens: keep [CLS]/[SEP]-like positions (sub-word mode only).
-        word_pooling       : None -> one vector per sub-word token;
-                             "max" / "mean" / "first" -> one vector per word, pooling its sub-words
-                             (documents must then be lists of words; "max" is what TokenCore used).
-        cache_dir          : Hugging Face cache folder, as in from_pretrained(..., cache_dir=...).
-        """
         if word_pooling not in (None, "max", "mean", "first"):
             raise ValueError("word_pooling must be None, 'max', 'mean' or 'first'")
         super().__init__(model_name_or_path, layer, max_length, batch_size, device, dtype, cache_dir)
@@ -138,16 +152,22 @@ class TokenEmbedder(_HFEmbedder):
 
     @torch.no_grad()
     def transform(self, texts: List[Text], cache=None):
-        """
-        Returns (embeddings, ids), two lists with one entry per document.
+        """Embed documents.
 
-        sub-word mode : embeddings[i] is [n_subwords, dim]; ids[i] gives the word index of every
-                        sub-word (None for special tokens).
-        word mode     : embeddings[i] is [n_kept_words, dim]; ids[i] lists which words they are.
-                        Words are missing only if truncated away or if they produce no sub-word
-                        (e.g. a lone control character); select labels with ids[i].
-        cache         : optional .npz path; reused if it was written for the same model,
-                        settings and texts, otherwise (re)computed and saved.
+        Parameters
+        ----------
+        texts : list of str or list of list of str
+            Documents as strings or word lists (word lists are required with ``word_pooling``).
+        cache : str or None, default=None
+            ``.npz`` file; reused when written for the same model, settings and texts.
+
+        Returns
+        -------
+        embeddings : list of numpy.ndarray
+            One ``[n_units, dim]`` array per document (sub-words, or words with ``word_pooling``).
+        ids : list of list
+            For sub-words, the word index of each sub-word (None for special tokens); for
+            words, the indices of the embedded words (words cut off by ``max_length`` are missing).
         """
         texts = list(texts)
         if self.word_pooling is not None and any(isinstance(t, str) for t in texts):
@@ -202,17 +222,34 @@ class TokenEmbedder(_HFEmbedder):
 
 # ----------------------------------------------------------------------------- sentence level
 class SentenceEmbedder(_HFEmbedder):
+    """Frozen document embeddings from any Hugging Face model.
+
+    Parameters
+    ----------
+    model_name_or_path : str
+        Hugging Face name or local folder of an encoder or decoder.
+    pooling : {"auto", "cls", "mean", "last"}, default="auto"
+        "cls": first position; "mean": mean over non-padding positions; "last": last
+        non-padding position; "auto": "cls" if the tokenizer has a CLS token (BERT,
+        RoBERTa), else "last" (decoders such as GPT and Qwen).
+    layer : int, default=-1
+        Hidden layer to use (-1 = last).
+    max_length : int, default=512
+        Longer documents are truncated.
+    batch_size : int, default=32
+        Documents per forward pass.
+    normalize : bool, default=False
+        L2-normalise the output vectors.
+    device : str or None, default=None
+        "cuda" or "cpu"; None picks CUDA when available.
+    dtype : torch.dtype, default=torch.float32
+        Model precision.
+    cache_dir : str or None, default=None
+        Hugging Face cache folder.
+    """
 
     def __init__(self, model_name_or_path, pooling="auto", layer=-1, max_length=512, batch_size=32,
                  normalize=False, device=None, dtype=torch.float32, cache_dir=None):
-        """
-        pooling : "auto" -> "cls" for models whose tokenizer has a CLS token (BERT, RoBERTa, ...),
-                            "last" otherwise (decoder models such as Qwen, GPT);
-                  "cls"  -> hidden state of the first position;
-                  "mean" -> mean over all non-padding positions (as sentence-transformers);
-                  "last" -> hidden state of the last non-padding position.
-        normalize : L2-normalise the output vectors.
-        """
         if pooling not in ("auto", "cls", "mean", "last"):
             raise ValueError("pooling must be 'auto', 'cls', 'mean' or 'last'")
         super().__init__(model_name_or_path, layer, max_length, batch_size, device, dtype, cache_dir)
@@ -223,7 +260,20 @@ class SentenceEmbedder(_HFEmbedder):
 
     @torch.no_grad()
     def transform(self, texts: List[Text], cache=None):
-        """Returns an array [n_documents, dim]. ``cache`` as in ``TokenEmbedder.transform``."""
+        """Embed documents.
+
+        Parameters
+        ----------
+        texts : list of str or list of list of str
+            Documents as strings or word lists.
+        cache : str or None, default=None
+            ``.npz`` file; reused when written for the same model, settings and texts.
+
+        Returns
+        -------
+        numpy.ndarray
+            ``[n_documents, dim]``.
+        """
         texts = list(texts)
         key = self._key(texts, ["sentence", self.pooling, self.normalize])
         if cache is not None and os.path.exists(cache):

@@ -80,6 +80,71 @@ class _DATENet(nn.Module):
 
 
 class DATE(BaseTextDetector):
+    """Detecting Anomalies in Text via Self-Supervision of Transformers (Manolache et al., NAACL 2021).
+
+    An ELECTRA discriminator is trained from scratch on normal text to detect which
+    tokens were replaced (RTD) and which mask pattern was applied (RMD). The anomaly
+    score of a document is one minus the mean probability that its tokens are original.
+
+    Parameters
+    ----------
+    tokenizer : str or tokenizer, default="bert-base-uncased"
+        Hugging Face name or path, a ``vocab.txt`` file, or a fast tokenizer object.
+    max_len : int, default=128
+        Window length in tokens; longer documents are split into sliding windows.
+    stride : float, default=0.8
+        Window step as a fraction of ``max_len + 2``.
+    n_masks : int, default=50
+        Number of fixed mask patterns (classes of the RMD task).
+    mask_ratio : float, default=0.5
+        Fraction of positions replaced in each mask.
+    masks : str or None, default=None
+        None draws the masks from ``random_state``; the path of the official
+        ``pseudo_labels128_p50.pkl`` uses the exact official masks.
+    hidden, layers, heads, intermediate, emb : int
+        Size of the discriminator (default 256, 4, 4, 1024, 128).
+    dropout : float, default=0.5
+        Dropout of the discriminator.
+    rtd_weight, rmd_weight : float, default=50.0, 100.0
+        Weights of the two losses.
+    lr : float, default=1e-5
+        AdamW learning rate.
+    weight_decay : float, default=0.1
+        AdamW weight decay (0.01 for biases and LayerNorm, as in the official code).
+    max_grad_norm : float, default=1.0
+        Gradient-norm clipping.
+    n_epochs : int, default=20
+        Training epochs.
+    batch_size : int, default=16
+        Mini-batch size.
+    use_attention_mask : bool, default=False
+        Give the encoder an attention mask (the official code does not).
+    cache_dir : str or None, default=None
+        Hugging Face cache folder for the tokenizer.
+    contamination : float, default=0.1
+        Expected proportion of anomalies; sets ``threshold_`` for ``predict``.
+    random_state : int or None, default=0
+        Seed for all random number generators.
+    device : str or None, default=None
+        "cuda" or "cpu"; None picks CUDA when available.
+    verbose : bool, default=False
+        Print training progress.
+
+    Attributes
+    ----------
+    decision_scores_ : numpy.ndarray
+        Anomaly scores of the training data (higher = more anomalous).
+    threshold_ : float
+        Score above which ``predict`` returns 1.
+    labels_ : numpy.ndarray
+        Binary labels of the training data.
+
+    Notes
+    -----
+    ``X`` is a list of strings or of word lists. ``token_scores`` is an extension that
+    is not part of the paper. Differences from the official code are listed in
+    :doc:`/faithfulness`.
+    """
     supports_token = True
 
 
@@ -89,12 +154,6 @@ class DATE(BaseTextDetector):
                  rtd_weight=50.0, rmd_weight=100.0, lr=1e-5, weight_decay=0.1,
                  max_grad_norm=1.0, n_epochs=20, batch_size=16, use_attention_mask=False,
                  cache_dir=None, contamination=0.1, random_state=0, device=None, verbose=False):
-        """
-        tokenizer : HF name or path, a vocab.txt path, or a fast tokenizer object.
-        cache_dir : Hugging Face cache folder, as in from_pretrained(..., cache_dir=...).
-        masks     : None -> K random masks from random_state, or the path of the official
-                    experiments/pseudo_labels128_p50.pkl to use the exact official set.
-        """
         super().__init__(contamination, random_state, device, verbose)
         self.tokenizer = tokenizer
         self.max_len = max_len
@@ -214,6 +273,7 @@ class DATE(BaseTextDetector):
         return loss.item()
 
     def fit(self, X: List[Text], y=None):
+        """Fit the detector on training documents ``X`` and return ``self``."""
         self._set_seed()
         self._load_tokenizer()
         self.vocab_size_ = len(self.tok_)
@@ -265,11 +325,12 @@ class DATE(BaseTextDetector):
         return win, sub, [e[1] for e in enc]
 
     def decision_function(self, X: List[Text]):
+        """Anomaly score of each document in ``X`` (higher = more anomalous)."""
         win, _, _ = self._score(X)
         return np.array([1.0 - np.mean(w) if w else np.nan for w in win])
 
     def token_scores(self, X: List[Text], agg="max"):
-        """EXTENSION: per-word P(replaced). For word lists the output has one score per word."""
+        """Token scores: probability that each token was replaced, one score per word for word lists (extension, not in the paper)."""
         _, sub, wids = self._score(X)
         return [words_from_subwords(p, wid, len(x) if not isinstance(x, str) else None, agg)
                 for x, p, wid in zip(X, sub, wids)]

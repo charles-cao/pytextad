@@ -21,15 +21,32 @@ def _is_text(X):
 
 
 class DocumentDetector(BaseTextDetector):
+    """Use any vector anomaly detector on document embeddings.
+
+    Parameters
+    ----------
+    detector : object
+        Unfitted detector with ``fit(X)`` and ``decision_function(X)``, for example
+        ``pyod.models.knn.KNN()``.
+    embedder : SentenceEmbedder or None, default=None
+        If given, ``fit`` and ``decision_function`` accept raw texts; otherwise ``X`` is
+        a ``[n_documents, dim]`` array.
+    contamination : float, default=0.1
+        Expected proportion of anomalies; sets ``threshold_`` for ``predict``.
+    random_state : int or None, default=None
+        If not None, copied to ``detector.random_state`` before fitting.
+    verbose : bool, default=False
+        Print progress.
+
+    Examples
+    --------
+    >>> from pyod.models.knn import KNN
+    >>> det = DocumentDetector(KNN(), embedder=SentenceEmbedder("bert-base-uncased"))
+    >>> scores = det.fit(train_texts).decision_function(test_texts)
+    """
     supports_token = False
 
     def __init__(self, detector, embedder=None, contamination=0.1, random_state=None, verbose=False):
-        """
-        detector : unfitted vector detector, e.g. ``pyod.models.knn.KNN()``.
-        embedder : optional ``SentenceEmbedder``; then fit/decision_function accept raw texts.
-                   Without it, X must be an array [n_documents, dim].
-        random_state : if not None, copied onto ``detector.random_state`` before fitting.
-        """
         super().__init__(contamination, random_state, device="cpu", verbose=verbose)
         self.detector = detector
         self.embedder = embedder
@@ -42,6 +59,7 @@ class DocumentDetector(BaseTextDetector):
         return np.asarray(X, dtype=np.float32)
 
     def fit(self, X, y=None):
+        """Fit the detector on training documents ``X`` and return ``self``."""
         V = self._vectors(X)
         if self.random_state is not None and hasattr(self.detector, "random_state"):
             self.detector.random_state = self.random_state
@@ -49,21 +67,46 @@ class DocumentDetector(BaseTextDetector):
         return self._process_decision_scores(self.detector.decision_function(V))
 
     def decision_function(self, X):
+        """Anomaly score of each document in ``X`` (higher = more anomalous)."""
         return np.asarray(self.detector.decision_function(self._vectors(X)), dtype=float)
 
 
 class TokenDetector(BaseTextDetector):
+    """Use any vector anomaly detector on token embeddings.
+
+    The detector is fitted on the tokens of all training documents together and scores
+    every token; a document's score aggregates its token scores.
+
+    Parameters
+    ----------
+    detector : object
+        Unfitted detector with ``fit(X)`` and ``decision_function(X)``, for example
+        ``pyod.models.knn.KNN()``.
+    embedder : TokenEmbedder or None, default=None
+        If given, ``fit`` and ``decision_function`` accept raw texts; otherwise ``X`` is
+        a list of ``[n_tokens, dim]`` arrays, one per document.
+    aggregation : {"max", "mean", "topk"}, default="max"
+        How token scores are combined into the document score.
+    k : float, default=0.1
+        Fraction of tokens averaged by ``aggregation="topk"``.
+    contamination : float, default=0.1
+        Expected proportion of anomalies; sets ``threshold_`` for ``predict``.
+    random_state : int or None, default=None
+        If not None, copied to ``detector.random_state`` before fitting.
+    verbose : bool, default=False
+        Print progress.
+
+    Examples
+    --------
+    >>> from pyod.models.knn import KNN
+    >>> emb = TokenEmbedder("bert-base-uncased", word_pooling="max")
+    >>> det = TokenDetector(KNN(), embedder=emb).fit(train_words)
+    >>> word_scores = det.token_scores(test_words)
+    """
     supports_token = True
 
     def __init__(self, detector, embedder=None, aggregation="max", k=0.1, contamination=0.1,
                  random_state=None, verbose=False):
-        """
-        detector    : unfitted vector detector, fitted on all training tokens pooled together.
-        embedder    : optional ``TokenEmbedder``; then fit/decision_function accept raw texts.
-                      Without it, X must be a list of [n_tokens, dim] arrays, one per document.
-        aggregation : "max", "mean" or "topk" (mean of the top ``k`` fraction of tokens);
-                      used by ``decision_function``.
-        """
         super().__init__(contamination, random_state, device="cpu", verbose=verbose)
         self.detector = detector
         self.embedder = embedder
@@ -87,6 +130,7 @@ class TokenDetector(BaseTextDetector):
         return np.split(np.asarray(flat, dtype=float), np.cumsum(lengths)[:-1]) if len(lengths) else []
 
     def fit(self, X, y=None):
+        """Fit the detector on training documents ``X`` and return ``self``."""
         T = self._tokens(X)
         flat = np.vstack(T)
         if self.random_state is not None and hasattr(self.detector, "random_state"):
@@ -111,4 +155,5 @@ class TokenDetector(BaseTextDetector):
         return out
 
     def decision_function(self, X):
+        """Anomaly score of each document in ``X`` (higher = more anomalous)."""
         return aggregate(self.token_scores(X), self.aggregation, self.k)

@@ -112,6 +112,62 @@ def _norm_loss(diff, kind):
 
 
 class RSRAE(BaseTextDetector):
+    """Robust Subspace Recovery AutoEncoder (Lai et al., ICLR 2020).
+
+    An autoencoder with a linear robust-subspace-recovery layer in the latent space;
+    the anomaly score is the negative cosine similarity between a vector and its
+    reconstruction.
+
+    Parameters
+    ----------
+    hidden_layer_sizes : tuple of int, default=(32, 64, 128)
+        Encoder layer sizes (the decoder mirrors them).
+    intrinsic_size : int, default=10
+        Dimension of the recovered subspace.
+    loss_norm_type, norm_type : {"L21", "L1", "MSE"}, default="L21"
+        Norms of the reconstruction loss and of the PCA error.
+    all_alt : bool, default=True
+        Optimise the three losses alternately with separate optimisers.
+    enforce_proj : bool, default=True
+        Include the projection (orthogonality) step.
+    lambda1, lambda2 : float, default=0.0025, 0.1
+        Loss weights, used only when ``all_alt=False``.
+    lr : float, default=2.5e-4
+        Adam learning rate (10 times larger for the subspace steps).
+    n_epochs : int, default=200
+        Training epochs.
+    batch_size : int, default=128
+        Mini-batch size.
+    normalize : bool, default=True
+        L2-normalise the latent code.
+    bn_mode : {"official", "batch", None}, default="official"
+        Batch normalisation as run by the official code, real batch normalisation, or none.
+    activation : {"auto", "relu", "tanh", "leaky_relu"}, default="auto"
+        "auto" picks it from the training data as the official code does.
+    contamination : float, default=0.1
+        Expected proportion of anomalies; sets ``threshold_`` for ``predict``.
+    random_state : int or None, default=0
+        Seed for all random number generators.
+    device : str or None, default=None
+        "cuda" or "cpu"; None picks CUDA when available.
+    verbose : bool, default=False
+        Print training progress.
+
+    Attributes
+    ----------
+    decision_scores_ : numpy.ndarray
+        Anomaly scores of the training data (higher = more anomalous).
+    threshold_ : float
+        Score above which ``predict`` returns 1.
+    labels_ : numpy.ndarray
+        Binary labels of the training data.
+
+    Notes
+    -----
+    ``X`` is a ``[n_documents, dim]`` array. Wrap it in
+    :class:`~pytextad.models.wrappers.TokenDetector` to score tokens. Differences from
+    the official code are listed in :doc:`/faithfulness`.
+    """
     supports_token = False
 
 
@@ -120,11 +176,6 @@ class RSRAE(BaseTextDetector):
                  lambda1=0.0025, lambda2=0.1, lr=2.5e-4, n_epochs=200, batch_size=128,
                  normalize=True, bn_mode="official", activation="auto",
                  contamination=0.1, random_state=0, device=None, verbose=False):
-        """
-        activation : "auto" (official rule), or "relu" / "tanh" / "leaky_relu".
-        lambda1, lambda2 are only used when all_alt=False (joint loss), as in the
-        official code.
-        """
         super().__init__(contamination, random_state, device, verbose)
         self.hidden_layer_sizes = tuple(hidden_layer_sizes)
         self.intrinsic_size = intrinsic_size
@@ -162,6 +213,7 @@ class RSRAE(BaseTextDetector):
         return torch.mean((A.t() @ A - torch.eye(A.shape[1], device=A.device)) ** 2)
 
     def fit(self, X, y=None):
+        """Fit the detector on training documents ``X`` and return ``self``."""
         self._set_seed()
         X = np.asarray(X, dtype=np.float32)
         act = self._pick_activation(X)
@@ -204,11 +256,13 @@ class RSRAE(BaseTextDetector):
 
     @torch.no_grad()
     def reconstruct(self, X):
+        """Reconstruction of each vector in ``X``."""
         self.net_.eval()
         Xt = torch.as_tensor(np.asarray(X, dtype=np.float32), device=self.device)
         return torch.cat([self.net_(Xt[s:s + 1024])[3] for s in range(0, len(Xt), 1024)]).cpu().numpy()
 
     def decision_function(self, X):
+        """Anomaly score of each document in ``X`` (higher = more anomalous)."""
         X = np.asarray(X, dtype=np.float32)
         R = self.reconstruct(X)
         cos = (X * R).sum(1) / (np.linalg.norm(R, axis=1) + 1e-6) / (np.linalg.norm(X, axis=1) + 1e-6)

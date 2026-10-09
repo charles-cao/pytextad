@@ -6,3 +6,4 @@ docs/_build/
 data/
 tests/verification/reference/
 .pytest_cache/
+docs/generated/

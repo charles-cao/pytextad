@@ -72,12 +72,4 @@ Your own data
    ds = load_local("my_data.npy")     # TokenCore .npy format (pickled; trusted files only)
    ds.to_jsonl("my_data.jsonl")
 
-API
----
-
-.. autofunction:: pytextad.datasets.load_dataset
-.. autofunction:: pytextad.datasets.load_local
-.. autofunction:: pytextad.datasets.list_datasets
-.. autofunction:: pytextad.datasets.dataset_info
-.. autoclass:: pytextad.datasets.TextADDataset
-   :members: from_lists, labels, normal_indices, anomalous_indices, subset, stats, retokenize, to_jsonl
+See :ref:`api-datasets` for the full API.

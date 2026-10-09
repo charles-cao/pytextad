@@ -1,80 +1,99 @@
-API reference
+API Reference
 =============
+
+This is the API documentation for PyTextAD.
 
 Detectors
 ---------
 
-Every detector gives document scores through ``decision_function``. Detectors with
-``supports_token = True`` also give token scores through ``token_scores``.
+The ``pytextad.models`` module includes the text anomaly detectors. All of them score
+documents; CVDD and DATE also score every token (``token_scores``).
 
-.. autoclass:: pytextad.models.cvdd.CVDD
-.. autoclass:: pytextad.models.date.DATE
-.. autoclass:: pytextad.models.fate.FATE
-.. autoclass:: pytextad.models.rsrae.RSRAE
+.. currentmodule:: pytextad.models
 
-Wrappers for vector detectors (PyOD, SIK, ...)
-----------------------------------------------
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
 
-.. autoclass:: pytextad.models.wrappers.DocumentDetector
-.. autoclass:: pytextad.models.wrappers.TokenDetector
+   cvdd.CVDD
+   date.DATE
+   fate.FATE
+   rsrae.RSRAE
+
+Wrappers
+--------
+
+Turn any vector detector with ``fit`` and ``decision_function`` (all of PyOD) into a
+text detector.
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+
+   wrappers.DocumentDetector
+   wrappers.TokenDetector
 
 Base class
 ----------
 
-.. autoclass:: pytextad.models.base.BaseTextDetector
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+
+   base.BaseTextDetector
 
 Embeddings
 ----------
 
-.. autoclass:: pytextad.utils.embeddings.TokenEmbedder
-.. autoclass:: pytextad.utils.embeddings.SentenceEmbedder
-.. autofunction:: pytextad.utils.embeddings.mean_pool
-.. autofunction:: pytextad.utils.embeddings.words_from_subwords
-.. autofunction:: pytextad.utils.embeddings.encode_words
+The ``pytextad.utils.embeddings`` module extracts frozen embeddings from Hugging Face
+models.
 
-Evaluation
-----------
+.. currentmodule:: pytextad.utils.embeddings
 
-.. automodule:: pytextad.metrics
-   :members:
-   :no-inherited-members:
-   :no-show-inheritance:
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
 
-Module notes (faithfulness and deviations)
-------------------------------------------
+   TokenEmbedder
+   SentenceEmbedder
+   mean_pool
+   words_from_subwords
+   encode_words
 
-CVDD
-~~~~
+.. _api-datasets:
 
-.. automodule:: pytextad.models.cvdd
-   :no-index:
-   :no-members:
-   :no-inherited-members:
-   :no-show-inheritance:
+Datasets
+--------
 
-DATE
-~~~~
+The ``pytextad.datasets`` module loads benchmark datasets with word-level labels.
 
-.. automodule:: pytextad.models.date
-   :no-index:
-   :no-members:
-   :no-inherited-members:
-   :no-show-inheritance:
+.. currentmodule:: pytextad.datasets
 
-FATE
-~~~~
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
 
-.. automodule:: pytextad.models.fate
-   :no-index:
-   :no-members:
-   :no-inherited-members:
-   :no-show-inheritance:
+   load_dataset
+   list_datasets
+   dataset_info
+   load_local
+   TextADDataset
 
-RSRAE
-~~~~~
+Metrics
+-------
 
-.. automodule:: pytextad.models.rsrae
-   :no-index:
-   :no-members:
-   :no-inherited-members:
-   :no-show-inheritance:
+The ``pytextad.metrics`` module evaluates detectors at the document and token levels.
+
+.. currentmodule:: pytextad.metrics
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+
+   evaluate
+   format_results
+   document_metrics
+   token_metrics
+   aggregate
+   document_labels
+   fpr_at_tpr

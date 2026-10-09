@@ -18,6 +18,13 @@ import torch
 
 
 class BaseTextDetector(abc.ABC):
+    """Base class of all PyTextAD detectors, with the PyOD interface.
+
+    ``fit(X)`` sets ``decision_scores_``, ``threshold_`` and ``labels_``;
+    ``decision_function(X)`` returns one score per document (higher = more anomalous);
+    ``predict(X)`` returns 0/1. Detectors with ``supports_token = True`` also implement
+    ``token_scores(X)``.
+    """
 
     #: True if the detector implements ``token_scores`` (token-level detection).
     supports_token = False

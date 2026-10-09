@@ -1,7 +1,7 @@
 # PyTextAD: Text Anomaly Detection in Python
 
-[![PyPI](https://img.shields.io/pypi/v/pytextad.svg)](https://pypi.org/project/pytextad/)
-[![Documentation](https://readthedocs.org/projects/pytextad/badge/?version=latest)](https://pytextad.readthedocs.io)
+[![PyPI](https://img.shields.io/pypi/v/pytextad?label=pypi)](https://pypi.org/project/pytextad/)
+[![Documentation](https://img.shields.io/readthedocs/pytextad?label=docs)](https://pytextad.readthedocs.io)
 [![Tests](https://github.com/charles-cao/pytextad/actions/workflows/tests.yml/badge.svg)](https://github.com/charles-cao/pytextad/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-BSD--2--Clause-blue.svg)](LICENSE)
 

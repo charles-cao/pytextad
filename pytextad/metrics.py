@@ -37,9 +37,18 @@ def document_metrics(y_true, scores):
 def token_metrics(token_labels, token_scores):
     """AUROC, AP and FPR@95 over all tokens of all documents (pooled).
 
-    token_labels, token_scores : lists with one array per document, of equal lengths.
-    Tokens whose score is NaN (e.g. words removed by truncation) are left out and counted
-    in ``n_ignored``.
+    Parameters
+    ----------
+    token_labels : list of array-like
+        One 0/1 array per document.
+    token_scores : list of array-like
+        One score array per document, of the same lengths. Tokens with a NaN score (for
+        example words cut off by truncation) are left out and counted in ``n_ignored``.
+
+    Returns
+    -------
+    dict
+        ``auroc``, ``ap``, ``fpr95`` and ``n_ignored``.
     """
     if len(token_labels) != len(token_scores):
         raise ValueError(f"{len(token_labels)} label lists but {len(token_scores)} score lists")
@@ -60,8 +69,22 @@ def document_labels(token_labels):
 
 
 def aggregate(token_scores, how="max", k=0.1):
-    """Document scores from token scores: "max", "mean", or "topk" (mean of the top
-    ``k`` fraction of tokens, at least one). NaN token scores are ignored."""
+    """Document scores from token scores.
+
+    Parameters
+    ----------
+    token_scores : list of array-like
+        One score array per document; NaN scores are ignored.
+    how : {"max", "mean", "topk"}, default="max"
+        "topk" is the mean of the top ``k`` fraction of tokens (at least one).
+    k : float, default=0.1
+        Fraction used by "topk".
+
+    Returns
+    -------
+    numpy.ndarray
+        One score per document.
+    """
     out = []
     for s in token_scores:
         s = np.asarray(s, dtype=float)
