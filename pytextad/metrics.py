@@ -14,6 +14,8 @@ import warnings
 import numpy as np
 from sklearn.metrics import average_precision_score, roc_auc_score, roc_curve
 
+from .utils.rng import preserve_rng
+
 
 # ----------------------------------------------------------------------------- basic metrics
 def fpr_at_tpr(y_true, scores, tpr_level=0.95):
@@ -134,7 +136,8 @@ def evaluate(detector, X_train, X_test, doc_labels=None, token_labels=None, y_tr
     ----------
     detector : BaseTextDetector
         Unfitted detector; a fresh copy is fitted for every seed, with ``random_state`` set
-        on the detector and, for wrappers, on the wrapped vector detector.
+        on the detector and, for wrappers, on the wrapped vector detector. The global random
+        generators are seeded with it before fitting.
     X_train, X_test
         Inputs accepted by the detector.
     doc_labels : array-like, optional
@@ -169,7 +172,10 @@ def evaluate(detector, X_train, X_test, doc_labels=None, token_labels=None, y_tr
     for seed in seeds:
         det = _seeded_copy(detector, seed)
         det.fit(X_train, y_train) if y_train is not None else det.fit(X_train)
-        runs["document"].append(document_metrics(doc_labels, det.decision_function(X_test)))
+        # both scorings start from the generator state right after fit, as in a plain
+        # fit / decision_function script (matters for detectors whose scoring is random)
+        with preserve_rng():
+            runs["document"].append(document_metrics(doc_labels, det.decision_function(X_test)))
         if token_capable:
             ts = det.token_scores(X_test)
             for how in aggregations:

@@ -13,13 +13,16 @@ copyright = "2026, Yang Cao"
 version = release = __version__
 
 extensions = ["sphinx.ext.autodoc", "sphinx.ext.autosummary", "sphinx.ext.napoleon",
-              "sphinx.ext.viewcode", "myst_parser"]
-autodoc_mock_imports = ["torch", "transformers", "sklearn", "numpy", "huggingface_hub"]
+              "sphinx.ext.viewcode", "myst_parser", "sphinxcontrib.bibtex"]
+autodoc_mock_imports = ["torch", "transformers", "sklearn", "numpy", "scipy", "pandas", "matplotlib", "huggingface_hub"]
 autodoc_member_order = "bysource"
 autodoc_typehints = "none"
 autosummary_generate = True
 napoleon_use_rtype = False
 templates_path = ["_templates"]
+bibtex_bibfiles = ["refs.bib"]
+bibtex_default_style = "alpha"
+bibtex_reference_style = "label"
 source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
 exclude_patterns = ["_build"]
 

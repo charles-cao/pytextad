@@ -71,7 +71,7 @@ def _endless(idx):
 
 
 class FATE(BaseTextDetector):
-    """Few-shot Anomaly detection in TExt with deviation learning (Das et al., ICONIP 2023).
+    """Few-shot Anomaly detection in TExt with deviation learning :cite:`das2023fate`.
 
     A sentence encoder with multi-head self-attention is fine-tuned so that a few
     labelled anomalies score far above a Gaussian reference while normal documents stay

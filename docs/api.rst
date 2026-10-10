@@ -3,11 +3,11 @@ API Reference
 
 This is the API documentation for PyTextAD.
 
-Detectors
----------
+Text detectors
+--------------
 
-The ``pytextad.models`` module includes the text anomaly detectors. All of them score
-documents; CVDD and DATE also score every token (``token_scores``).
+Detectors that take text (or token embeddings) and are trained end to end. All of them
+score documents; CVDD and DATE also score every token (``token_scores``).
 
 .. currentmodule:: pytextad.models
 
@@ -18,7 +18,38 @@ documents; CVDD and DATE also score every token (``token_scores``).
    cvdd.CVDD
    date.DATE
    fate.FATE
-   rsrae.RSRAE
+
+Vector detectors
+----------------
+
+The ``pytextad.models.vector`` module includes detectors for vectors, taken from their
+authors' code. Use them on document embeddings with ``DocumentDetector`` or on token
+embeddings with ``TokenDetector``.
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+
+   vector.TokenCore
+   vector.SIK
+   vector.ADERH
+   vector.TCCM
+   vector.RSRAE
+   vector.DAGMM
+   vector.GANomaly
+   vector.DROCC
+   vector.GOAD
+   vector.ICL
+   vector.MCM
+   vector.SLAD
+   vector.NormalizingFlow
+   vector.DTECategorical
+   vector.DTEInverseGamma
+   vector.DTEGaussian
+   vector.DTENonParametric
+   vector.DDPM
+   vector.DDAE
+   vector.DRL
 
 Wrappers
 --------
@@ -33,14 +64,15 @@ text detector.
    wrappers.DocumentDetector
    wrappers.TokenDetector
 
-Base class
-----------
+Base classes
+------------
 
 .. autosummary::
    :toctree: generated
    :nosignatures:
 
    base.BaseTextDetector
+   vector.BaseVectorDetector
 
 Embeddings
 ----------

@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use PyTextAD, please cite it as below, together with the papers of the detectors you use."
+type: software
+title: "PyTextAD: Text Anomaly Detection in Python"
+authors:
+  - family-names: Cao
+    given-names: Yang
+license: BSD-2-Clause
+repository-code: "https://github.com/charles-cao/pytextad"
+url: "https://pytextad.readthedocs.io"
+keywords:
+  - anomaly detection
+  - text
+  - natural language processing

@@ -12,6 +12,7 @@ A "vector detector" is any object with ``fit(X)`` and ``decision_function(X)`` w
 import numpy as np
 
 from ..metrics import aggregate
+from ..utils.rng import preserve_rng, seed_everything
 from .base import BaseTextDetector
 
 
@@ -20,8 +21,25 @@ def _is_text(X):
                            (isinstance(X[0], (list, tuple)) and len(X[0]) > 0 and isinstance(X[0][0], str)))
 
 
+def _as_float(x):
+    """Array of x, keeping its float precision (float64 vectors are not rounded to float32,
+    which would change the scores of a detector compared with running it directly)."""
+    x = np.asarray(x)
+    return x if np.issubdtype(x.dtype, np.floating) else x.astype(np.float64)
+
+
+def _seed(wrapper):
+    """Seed the wrapped detector and the global generators before fitting, as benchmark
+    scripts do (deep PyOD models and most published code use the global generators)."""
+    if wrapper.random_state is None:
+        return
+    if hasattr(wrapper.detector, "random_state"):
+        wrapper.detector.random_state = wrapper.random_state
+    seed_everything(wrapper.random_state)
+
+
 class DocumentDetector(BaseTextDetector):
-    """Use any vector anomaly detector on document embeddings.
+    """Use any vector anomaly detector (e.g. from PyOD :cite:`zhao2019pyod`) on document embeddings.
 
     Parameters
     ----------
@@ -34,7 +52,8 @@ class DocumentDetector(BaseTextDetector):
     contamination : float, default=0.1
         Expected proportion of anomalies; sets ``threshold_`` for ``predict``.
     random_state : int or None, default=None
-        If not None, copied to ``detector.random_state`` before fitting.
+        If not None, copied to ``detector.random_state`` and used to seed the global random
+        generators (Python, NumPy, PyTorch) before fitting.
     verbose : bool, default=False
         Print progress.
 
@@ -56,15 +75,15 @@ class DocumentDetector(BaseTextDetector):
             if self.embedder is None:
                 raise ValueError("texts given but no embedder; pass a SentenceEmbedder or vectors")
             return self.embedder.transform(X)
-        return np.asarray(X, dtype=np.float32)
+        return _as_float(X)
 
     def fit(self, X, y=None):
         """Fit the detector on training documents ``X`` and return ``self``."""
         V = self._vectors(X)
-        if self.random_state is not None and hasattr(self.detector, "random_state"):
-            self.detector.random_state = self.random_state
+        _seed(self)
         self.detector.fit(V)
-        return self._process_decision_scores(self.detector.decision_function(V))
+        with preserve_rng():
+            return self._process_decision_scores(self.detector.decision_function(V))
 
     def decision_function(self, X):
         """Anomaly score of each document in ``X`` (higher = more anomalous)."""
@@ -72,7 +91,7 @@ class DocumentDetector(BaseTextDetector):
 
 
 class TokenDetector(BaseTextDetector):
-    """Use any vector anomaly detector on token embeddings.
+    """Use any vector anomaly detector (e.g. from PyOD :cite:`zhao2019pyod`) on token embeddings.
 
     The detector is fitted on the tokens of all training documents together and scores
     every token; a document's score aggregates its token scores.
@@ -92,7 +111,8 @@ class TokenDetector(BaseTextDetector):
     contamination : float, default=0.1
         Expected proportion of anomalies; sets ``threshold_`` for ``predict``.
     random_state : int or None, default=None
-        If not None, copied to ``detector.random_state`` before fitting.
+        If not None, copied to ``detector.random_state`` and used to seed the global random
+        generators (Python, NumPy, PyTorch) before fitting.
     verbose : bool, default=False
         Print progress.
 
@@ -123,7 +143,7 @@ class TokenDetector(BaseTextDetector):
             if getattr(self.embedder, "word_pooling", None) is not None:
                 layout = [(len(doc), w) for doc, w in zip(X, ids)]
         else:
-            T = [np.asarray(x, dtype=np.float32) for x in X]
+            T = [_as_float(x) for x in X]
         return (T, layout) if with_layout else T
 
     def _split(self, flat, lengths):
@@ -133,10 +153,10 @@ class TokenDetector(BaseTextDetector):
         """Fit the detector on training documents ``X`` and return ``self``."""
         T = self._tokens(X)
         flat = np.vstack(T)
-        if self.random_state is not None and hasattr(self.detector, "random_state"):
-            self.detector.random_state = self.random_state
+        _seed(self)
         self.detector.fit(flat)
-        train_tokens = self._split(self.detector.decision_function(flat), [len(t) for t in T])
+        with preserve_rng():
+            train_tokens = self._split(self.detector.decision_function(flat), [len(t) for t in T])
         return self._process_decision_scores(aggregate(train_tokens, self.aggregation, self.k))
 
     def token_scores(self, X):

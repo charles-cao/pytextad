@@ -80,7 +80,7 @@ class _DATENet(nn.Module):
 
 
 class DATE(BaseTextDetector):
-    """Detecting Anomalies in Text via Self-Supervision of Transformers (Manolache et al., NAACL 2021).
+    """Detecting Anomalies in Text via Self-Supervision of Transformers :cite:`manolache2021date`.
 
     An ELECTRA discriminator is trained from scratch on normal text to detect which
     tokens were replaced (RTD) and which mask pattern was applied (RMD). The anomaly

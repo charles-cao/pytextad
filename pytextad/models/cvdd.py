@@ -96,7 +96,7 @@ class _CVDDNet(nn.Module):
 
 
 class CVDD(BaseTextDetector):
-    """Context Vector Data Description (Ruff et al., ACL 2019).
+    """Context Vector Data Description :cite:`ruff2019cvdd`.
 
     Self-attentive one-class model on frozen token embeddings. Each of ``n_heads``
     attention heads summarises a document into one vector, which is compared with a

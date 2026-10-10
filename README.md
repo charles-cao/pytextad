@@ -77,6 +77,11 @@ Your own data: `TextADDataset.from_lists(tokens, token_labels)` or `load_local("
 
 | Method | Year | Input | Token scores | Reference |
 |---|---|---|---|---|
+| TokenCore | 2026 | token embeddings | via `TokenDetector` | Cao et al., *Towards Token-Level Text Anomaly Detection*, WWW 2026 |
+| SIK | 2025 | vectors | via `TokenDetector` | Cao et al., *Text Anomaly Detection with Simplified Isolation Kernel*, Findings of EMNLP 2025 |
+| ADERH | 2025 | vectors | via `TokenDetector` | Durani et al., *Anomaly Detection by an Ensemble of Random Pairs of Hyperspheres*, NeurIPS 2025 |
+| TCCM | 2025 | vectors | via `TokenDetector` | Li et al., *Scalable, Explainable and Provably Robust Anomaly Detection with One-Step Flow Matching*, NeurIPS 2025 |
+| DAGMM, GANomaly, DROCC, GOAD, ICL, MCM, SLAD, NormalizingFlow, DTE (4 variants), DDPM, DDAE, DRL | 2015 to 2025 | vectors | via `TokenDetector` | see the [References](https://pytextad.readthedocs.io/en/latest/references.html) page |
 | CVDD | 2019 | frozen token embeddings | yes | Ruff et al., *Self-Attentive, Multi-Context One-Class Classification for Unsupervised Anomaly Detection on Text*, ACL 2019 |
 | RSRAE | 2020 | vectors | via `TokenDetector` | Lai et al., *Robust Subspace Recovery Layer for Unsupervised Anomaly Detection*, ICLR 2020 |
 | DATE | 2021 | raw text | yes | Manolache et al., *DATE: Detecting Anomalies in Text via Self-Supervision of Transformers*, NAACL 2021 |
@@ -102,6 +107,11 @@ pass; see [tests/verification/README.md](tests/verification/README.md).
 pytest                               # fast API tests, a few seconds
 PYTEXTAD_DEVICE=cuda pytest            # same, on GPU (PowerShell: $env:PYTEXTAD_DEVICE="cuda"; pytest)
 ```
+
+## Citing
+
+Use "Cite this repository" on GitHub (from `CITATION.cff`), and cite the paper of each
+detector you use; the full list is on the [References](https://pytextad.readthedocs.io/en/latest/references.html) page.
 
 ## License
 

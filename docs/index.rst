@@ -21,16 +21,100 @@ every re-implemented method is checked numerically against its original code.
 Implemented algorithms
 ----------------------
 
-==================  ===================  ============  ==========================
-Detector            Input                Token level   Reference
-==================  ===================  ============  ==========================
-CVDD                token embeddings     yes           Ruff et al., ACL 2019
-RSRAE               vectors              via wrapper   Lai et al., ICLR 2020
-DATE                text                 yes           Manolache et al., NAACL 2021
-FATE                text                 no            Das et al., ICONIP 2023
-DocumentDetector    document embeddings  no            any PyOD detector
-TokenDetector       token embeddings     yes           any PyOD detector
-==================  ===================  ============  ==========================
+.. list-table::
+   :header-rows: 1
+   :widths: 22 22 14 12
+
+   * - Detector
+     - Input
+     - Token level
+     - Reference
+   * - TokenCore
+     - token embeddings
+     - via wrapper
+     - :cite:`cao2026tokencore`
+   * - SIK
+     - vectors
+     - via wrapper
+     - :cite:`cao2025sik`
+   * - ADERH
+     - vectors
+     - via wrapper
+     - :cite:`durani2025aderh`
+   * - TCCM
+     - vectors
+     - via wrapper
+     - :cite:`li2025tccm`
+   * - DAGMM
+     - vectors
+     - via wrapper
+     - :cite:`zong2018dagmm`
+   * - GANomaly
+     - vectors
+     - via wrapper
+     - :cite:`akcay2018ganomaly`
+   * - DROCC
+     - vectors
+     - via wrapper
+     - :cite:`goyal2020drocc`
+   * - GOAD
+     - vectors
+     - via wrapper
+     - :cite:`bergman2020goad`
+   * - ICL
+     - vectors
+     - via wrapper
+     - :cite:`shenkar2022icl`
+   * - MCM
+     - vectors
+     - via wrapper
+     - :cite:`yin2024mcm`
+   * - SLAD
+     - vectors
+     - via wrapper
+     - :cite:`xu2023slad`
+   * - NormalizingFlow
+     - vectors
+     - via wrapper
+     - :cite:`rezende2015planar`
+   * - DTECategorical, DTEInverseGamma, DTEGaussian, DTENonParametric, DDPM
+     - vectors
+     - via wrapper
+     - :cite:`livernoche2024dte`
+   * - DDAE
+     - vectors
+     - via wrapper
+     - :cite:`sattarov2025ddae`
+   * - DRL
+     - vectors
+     - via wrapper
+     - :cite:`ye2025drl`
+   * - CVDD
+     - token embeddings
+     - yes
+     - :cite:`ruff2019cvdd`
+   * - RSRAE
+     - vectors
+     - via wrapper
+     - :cite:`lai2020rsrae`
+   * - DATE
+     - text
+     - yes
+     - :cite:`manolache2021date`
+   * - FATE
+     - text
+     - no
+     - :cite:`das2023fate`
+   * - DocumentDetector
+     - document embeddings
+     - no
+     - any PyOD detector :cite:`zhao2019pyod`
+   * - TokenDetector
+     - token embeddings
+     - yes
+     - any PyOD detector :cite:`zhao2019pyod`
+
+"Via wrapper": a vector detector scores tokens when wrapped in ``TokenDetector``.
 
 Get started with :doc:`install` and :doc:`quickstart`; the built-in benchmark data are
 described in :doc:`datasets`.
@@ -57,4 +141,5 @@ described in :doc:`datasets`.
    faithfulness
    changelog
    citing
+   references
    license
