@@ -4,7 +4,7 @@ Quick Start
 Document-level detection
 ------------------------
 
-Any vector detector works on document embeddings through
+Any embedding detector works on document embeddings through
 :class:`~pytextad.models.wrappers.DocumentDetector`; end-to-end text detectors take the
 texts directly.
 
@@ -22,7 +22,7 @@ texts directly.
 Token-level detection
 ---------------------
 
-:class:`~pytextad.models.wrappers.TokenDetector` fits a vector detector on the words of
+:class:`~pytextad.models.wrappers.TokenDetector` fits a embedding detector on the words of
 all training documents, scores every word, and aggregates word scores into document
 scores.
 

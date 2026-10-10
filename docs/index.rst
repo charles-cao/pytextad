@@ -1,10 +1,27 @@
 PyTextAD: Text Anomaly Detection in Python
 ==========================================
 
-**PyTextAD** is a Python library for detecting anomalies in text, at the level of whole
-documents and of individual tokens. All detectors share one interface (``fit``,
-``decision_function``, ``predict``), and every detector is its authors' code or is checked
-numerically against it.
+**PyTextAD** is a Python library for detecting anomalies in text: whole anomalous documents,
+and the individual tokens that make them anomalous.
+
+* **23 detectors** with one interface (``fit``, ``decision_function``, ``predict``), from
+  classic text detectors to recent embedding-based methods. See :doc:`algorithms`.
+* **Token-level detection**: every detector can score each token of a document, and token
+  scores are aggregated into document scores.
+* **Faithful implementations**: each detector is its authors' code, or is checked
+  numerically against it. See :doc:`faithfulness`.
+* **Benchmark datasets** with a label for every word, and evaluation at the token and
+  document levels. See :doc:`datasets`.
+
+Installation
+------------
+
+.. code-block:: bash
+
+   pip install pytextad
+
+Example
+-------
 
 .. code-block:: python
 
@@ -12,111 +29,13 @@ numerically against it.
    from pytextad.datasets import load_dataset
 
    ds = load_dataset("restaurant_review")
-   det = TokenDetector(TokenCore(), embedder=TokenEmbedder("bert-base-uncased", word_pooling="max"))
+   emb = TokenEmbedder("bert-base-uncased", word_pooling="max")   # one vector per word
+   det = TokenDetector(TokenCore(), embedder=emb)
    det.fit(ds.tokens[:500])
    word_scores = det.token_scores(ds.tokens[500:])      # one score per word
    doc_scores = det.decision_function(ds.tokens[500:])  # one score per document
 
-Implemented algorithms
-----------------------
-
-.. list-table::
-   :header-rows: 1
-   :widths: 22 22 14 12
-
-   * - Detector
-     - Input
-     - Token level
-     - Reference
-   * - TokenCore
-     - token embeddings
-     - via wrapper
-     - :cite:`cao2026tokencore`
-   * - SIK
-     - vectors
-     - via wrapper
-     - :cite:`cao2025sik`
-   * - ADERH
-     - vectors
-     - via wrapper
-     - :cite:`durani2025aderh`
-   * - TCCM
-     - vectors
-     - via wrapper
-     - :cite:`li2025tccm`
-   * - DAGMM
-     - vectors
-     - via wrapper
-     - :cite:`zong2018dagmm`
-   * - GANomaly
-     - vectors
-     - via wrapper
-     - :cite:`akcay2018ganomaly`
-   * - DROCC
-     - vectors
-     - via wrapper
-     - :cite:`goyal2020drocc`
-   * - GOAD
-     - vectors
-     - via wrapper
-     - :cite:`bergman2020goad`
-   * - ICL
-     - vectors
-     - via wrapper
-     - :cite:`shenkar2022icl`
-   * - MCM
-     - vectors
-     - via wrapper
-     - :cite:`yin2024mcm`
-   * - SLAD
-     - vectors
-     - via wrapper
-     - :cite:`xu2023slad`
-   * - NormalizingFlow
-     - vectors
-     - via wrapper
-     - :cite:`rezende2015planar`
-   * - DTECategorical, DTEInverseGamma, DTEGaussian, DTENonParametric, DDPM
-     - vectors
-     - via wrapper
-     - :cite:`livernoche2024dte`
-   * - DDAE
-     - vectors
-     - via wrapper
-     - :cite:`sattarov2025ddae`
-   * - DRL
-     - vectors
-     - via wrapper
-     - :cite:`ye2025drl`
-   * - CVDD
-     - token embeddings
-     - yes
-     - :cite:`ruff2019cvdd`
-   * - RSRAE
-     - vectors
-     - via wrapper
-     - :cite:`lai2020rsrae`
-   * - DATE
-     - text
-     - yes
-     - :cite:`manolache2021date`
-   * - FATE
-     - text
-     - no
-     - :cite:`das2023fate`
-   * - DocumentDetector
-     - document embeddings
-     - no
-     - any vector detector, e.g. PyOD :cite:`zhao2019pyod`
-   * - TokenDetector
-     - token embeddings
-     - yes
-     - any vector detector, e.g. PyOD :cite:`zhao2019pyod`
-
-"Via wrapper": a vector detector scores tokens when wrapped in ``TokenDetector``.
-
-Get started with :doc:`install` and :doc:`quickstart`; the built-in benchmark data are
-described in :doc:`datasets`.
+Continue with :doc:`quickstart`.
 
 .. toctree::
    :hidden:
@@ -124,6 +43,7 @@ described in :doc:`datasets`.
 
    install
    quickstart
+   algorithms
    datasets
    examples
 

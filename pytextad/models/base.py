@@ -51,7 +51,7 @@ class BaseTextDetector(abc.ABC):
     def token_scores(self, X):
         """One array of token anomaly scores per document (token-level detectors only)."""
         raise NotImplementedError(f"{type(self).__name__} is a document-level detector; "
-                                  "use TokenDetector to score tokens with a vector detector")
+                                  "use TokenDetector to score tokens with a embedding detector")
 
     # ------------------------------------------------------------------ shared
     def _set_seed(self):

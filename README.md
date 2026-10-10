@@ -75,7 +75,7 @@ print(format_results({"SIK": result}))     # token and document AUROC, AP, FPR95
 | DATE | Detecting Anomalies in Text via Self-Supervision of Transformers | 2021 | yes | [2] |
 | FATE | Few-shot Anomaly Detection in Text with Deviation Learning | 2023 | no | [3] |
 
-**Vector detectors** take one vector per document or per token. Wrapped in
+**Embedding detectors** take one vector per document or per token. Wrapped in
 `TokenDetector`, each of them scores every token.
 
 | Abbr | Algorithm | Year | Ref |
@@ -98,7 +98,7 @@ print(format_results({"SIK": result}))     # token and document AUROC, AP, FPR95
 | TCCM | Time-Conditioned Contraction Matching | 2025 | [18] |
 | TokenCore | Nearest-neighbour memory bank of token embeddings | 2026 | [19] |
 
-**Wrappers** turn any vector detector with `fit` and `decision_function`, including those of
+**Wrappers** turn any embedding detector with `fit` and `decision_function`, including those of
 PyOD [20], into a text detector: `DocumentDetector` (one embedding per document) and
 `TokenDetector` (one embedding per token).
 

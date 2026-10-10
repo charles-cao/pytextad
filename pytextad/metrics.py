@@ -136,7 +136,7 @@ def evaluate(detector, X_train, X_test, doc_labels=None, token_labels=None, y_tr
     ----------
     detector : BaseTextDetector
         Unfitted detector; a fresh copy is fitted for every seed, with ``random_state`` set
-        on the detector and, for wrappers, on the wrapped vector detector. The global random
+        on the detector and, for wrappers, on the wrapped embedding detector. The global random
         generators are seeded with it before fitting.
     X_train, X_test
         Inputs accepted by the detector.

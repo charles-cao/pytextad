@@ -1,4 +1,4 @@
-"""Token-level and document-level benchmark of vector detectors on a built-in dataset.
+"""Token-level and document-level benchmark of embedding detectors on a built-in dataset.
 
     pip install pytextad
     python examples/token_level.py --dataset restaurant_review --model bert-base-uncased

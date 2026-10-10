@@ -43,7 +43,7 @@ Notes per detector
 TokenCore and SIK
 ~~~~~~~~~~~~~~~~~
 
-The authors' code, unchanged (``pytextad/models/vector/_vendor``); ``tests/test_vector.py``
+The authors' code, unchanged (``pytextad/models/embedding/_vendor``); ``tests/test_embedding_detectors.py``
 checks that the files are identical to the originals and that the scores are equal. SIK's
 class gets scikit-learn's ``BaseEstimator`` as an extra base class, because its
 ``check_is_fitted`` calls fail on other objects from scikit-learn 1.8 on.
@@ -52,17 +52,17 @@ ADERH and TCCM
 ~~~~~~~~~~~~~~
 
 ADERH is the official package (github.com/Walid10010/ADERH), unchanged; it gives the same
-scores as the original code of the paper, which ``tests/test_vector.py`` checks against that
+scores as the original code of the paper, which ``tests/test_embedding_detectors.py`` checks against that
 code. The package documents three places where the original code differs from the paper's
 description (how pair partners are chosen, the radius, and the alignment of radii with
 centres); they are kept so that published results are reproduced.
 
 TCCM is the official code (github.com/ZhongLIFR/TCCM-NIPS), unchanged except that the
 training data are moved to the model's device; the official class trains on the CPU only.
-``tests/test_vector.py`` checks it against the copy used in the SVEAD benchmark.
+``tests/test_embedding_detectors.py`` checks it against the copy used in the SVEAD benchmark.
 
-Other vector baselines
-~~~~~~~~~~~~~~~~~~~~~~
+Other embedding baselines
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 These are the copies used in the SVEAD and TokenCore benchmarks, which in turn come from the
 repositories below. ``tests/test_baselines.py`` checks, for every one of them, that PyTextAD
@@ -106,7 +106,7 @@ Two published errors are corrected by default and can be reproduced:
   scored alone gets 173.6 and 35.2 when scored with five normal vectors in our check. The
   corrected score is the vector's own negative log-likelihood. Training is not affected.
 
-All vector detectors seed the global random generators with ``random_state`` before the
+All embedding detectors seed the global random generators with ``random_state`` before the
 model is built and fitted, and score the training data without changing the generators, so
 a seed gives the same numbers as a benchmark script that seeds NumPy and PyTorch and then
 calls ``fit`` and ``decision_function``.
@@ -135,6 +135,6 @@ FATE
 RSRAE
 ~~~~~
 
-.. automodule:: pytextad.models.vector.rsrae
+.. automodule:: pytextad.models.embedding.rsrae
    :no-index:
    :no-members:

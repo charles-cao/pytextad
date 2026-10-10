@@ -10,7 +10,7 @@ from conftest import DEV, WORDS, make_texts
 
 
 class MeanDistance:
-    """Minimal vector detector: distance to the training mean."""
+    """Minimal embedding detector: distance to the training mean."""
     def __init__(self, random_state=None):
         self.random_state = random_state
 

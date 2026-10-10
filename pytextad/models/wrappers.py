@@ -1,6 +1,6 @@
-"""Turn any vector detector (SIK, TokenCore, RSRAE, or your own) into a text detector.
+"""Turn any embedding detector (SIK, TokenCore, RSRAE, or your own) into a text detector.
 
-A "vector detector" is any object with ``fit(X)`` and ``decision_function(X)`` working on a
+A "embedding detector" is any object with ``fit(X)`` and ``decision_function(X)`` working on a
 2-D array, higher scores meaning more anomalous.
 
 * ``DocumentDetector``: one vector per document (e.g. from ``SentenceEmbedder``).
@@ -39,7 +39,7 @@ def _seed(wrapper):
 
 
 class DocumentDetector(BaseTextDetector):
-    """Use any vector anomaly detector (e.g. SIK, or a PyOD detector :cite:`zhao2019pyod`) on document embeddings.
+    """Use any anomaly detector for embeddings (e.g. SIK, or a PyOD detector :cite:`zhao2019pyod`) on document embeddings.
 
     Parameters
     ----------
@@ -91,7 +91,7 @@ class DocumentDetector(BaseTextDetector):
 
 
 class TokenDetector(BaseTextDetector):
-    """Use any vector anomaly detector (e.g. TokenCore, or a PyOD detector :cite:`zhao2019pyod`) on token embeddings.
+    """Use any anomaly detector for embeddings (e.g. TokenCore, or a PyOD detector :cite:`zhao2019pyod`) on token embeddings.
 
     The detector is fitted on the tokens of all training documents together and scores
     every token; a document's score aggregates its token scores.

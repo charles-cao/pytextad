@@ -13,7 +13,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-## RSRAE (pytextad/models/vector/rsrae.py)
+## RSRAE (pytextad/models/embedding/rsrae.py)
 Ported to PyTorch from https://github.com/dmzou/RSRAE
 
 MIT License
@@ -35,7 +35,7 @@ No source code is copied; the logic was re-written against modern transformers.
 Re-implemented from https://github.com/arav1ndajay/fate, which has no licence file.
 No source code is copied; the logic was re-written and checked numerically against it.
 
-## ADERH (pytextad/models/vector/_vendor/aderh.py)
+## ADERH (pytextad/models/embedding/_vendor/aderh.py)
 Copied unchanged from https://github.com/Walid10010/ADERH (aderh/_aderh.py).
 
 MIT License
@@ -48,7 +48,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-## TCCM (pytextad/models/vector/_vendor/tccm.py)
+## TCCM (pytextad/models/embedding/_vendor/tccm.py)
 Copied from https://github.com/ZhongLIFR/TCCM-NIPS (FMAD/functions.py, FMAD/FlowMatchingAD.py),
 with one line added to move training data to the model's device. The TCCM repository is
 released under the Creative Commons Attribution-ShareAlike 4.0 licence
@@ -56,7 +56,7 @@ released under the Creative Commons Attribution-ShareAlike 4.0 licence
 licence, not under PyTextAD's BSD 2-Clause licence. Authors: Zhong Li, Qi Huang, Yuxuan Zhu,
 Lincen Yang, Mohammad Mohammadi Amiri, Niki van Stein, Matthijs van Leeuwen.
 
-## Vector baselines (pytextad/models/vector/_vendor/)
+## Embedding baselines (pytextad/models/embedding/_vendor/)
 Each file starts with its full source chain. Licences of the sources:
 
 * dte.py, dte_nonparametric.py, ddpm.py: https://github.com/vicliv/DTE, MIT License,

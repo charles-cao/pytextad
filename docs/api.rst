@@ -19,42 +19,42 @@ score documents; CVDD and DATE also score every token (``token_scores``).
    date.DATE
    fate.FATE
 
-Vector detectors
-----------------
+Embedding detectors
+-------------------
 
-The ``pytextad.models.vector`` module includes detectors for vectors, taken from their
-authors' code. Use them on document embeddings with ``DocumentDetector`` or on token
+The ``pytextad.models.embedding`` module includes detectors for embeddings (one vector per
+document or per token), taken from their authors' code. Use them on document embeddings with ``DocumentDetector`` or on token
 embeddings with ``TokenDetector``.
 
 .. autosummary::
    :toctree: generated
    :nosignatures:
 
-   vector.TokenCore
-   vector.SIK
-   vector.ADERH
-   vector.TCCM
-   vector.RSRAE
-   vector.DAGMM
-   vector.GANomaly
-   vector.DROCC
-   vector.GOAD
-   vector.ICL
-   vector.MCM
-   vector.SLAD
-   vector.NormalizingFlow
-   vector.DTECategorical
-   vector.DTEInverseGamma
-   vector.DTEGaussian
-   vector.DTENonParametric
-   vector.DDPM
-   vector.DDAE
-   vector.DRL
+   embedding.TokenCore
+   embedding.SIK
+   embedding.ADERH
+   embedding.TCCM
+   embedding.RSRAE
+   embedding.DAGMM
+   embedding.GANomaly
+   embedding.DROCC
+   embedding.GOAD
+   embedding.ICL
+   embedding.MCM
+   embedding.SLAD
+   embedding.NormalizingFlow
+   embedding.DTECategorical
+   embedding.DTEInverseGamma
+   embedding.DTEGaussian
+   embedding.DTENonParametric
+   embedding.DDPM
+   embedding.DDAE
+   embedding.DRL
 
 Wrappers
 --------
 
-Turn any vector detector with ``fit`` and ``decision_function`` into a text detector.
+Turn any embedding detector with ``fit`` and ``decision_function`` into a text detector.
 
 .. autosummary::
    :toctree: generated
@@ -71,7 +71,7 @@ Base classes
    :nosignatures:
 
    base.BaseTextDetector
-   vector.BaseVectorDetector
+   embedding.BaseEmbeddingDetector
 
 Embeddings
 ----------

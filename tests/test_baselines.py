@@ -9,7 +9,7 @@ import pytest
 import torch
 
 import pytextad
-from pytextad.models.vector import (DAGMM, DDAE, DDPM, DRL, DROCC, DTECategorical, DTEGaussian,
+from pytextad.models.embedding import (DAGMM, DDAE, DDPM, DRL, DROCC, DTECategorical, DTEGaussian,
                                     DTEInverseGamma, DTENonParametric, GANomaly, GOAD, ICL, MCM,
                                     NormalizingFlow, SLAD)
 
@@ -103,7 +103,7 @@ def test_dagmm_detached_loss_never_trains_and_the_fix_does():
         return torch.cat([p.detach().flatten() for p in det.model_.model_trainer.model.parameters()])
 
     torch.manual_seed(0)
-    from pytextad.models.vector._vendor import dagmm as vendor
+    from pytextad.models.embedding._vendor import dagmm as vendor
     torch.manual_seed(0)
     init = vendor.DAGMM_Model(8, 4, 1)
     init.apply(vendor.weights_init_normal)

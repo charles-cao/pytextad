@@ -1,17 +1,17 @@
 # Changelog
 
 ## Unreleased
-- Vector detectors in `pytextad.models.vector`: `TokenCore` (Cao et al., WWW 2026) and `SIK`
+- Embedding detectors in `pytextad.models.embedding`: `TokenCore` (Cao et al., WWW 2026) and `SIK`
   (Cao et al., Findings of EMNLP 2025), the authors' code unchanged and checked against the
   originals; `ADERH` (Durani et al., NeurIPS 2025, official package) and `TCCM` (Li et al.,
   NeurIPS 2025, official code); `RSRAE` moved there (old import path still works).
-- Vector baselines from the SVEAD / TokenCore benchmark copies: DAGMM, GANomaly, DROCC, GOAD,
+- Embedding baselines from the SVEAD / TokenCore benchmark copies: DAGMM, GANomaly, DROCC, GOAD,
   ICL, MCM, SLAD, NormalizingFlow, DTECategorical, DTEInverseGamma, DTEGaussian,
   DTENonParametric, DDPM, DDAE, DRL; each gives exactly the scores of its benchmark copy.
 - Corrected by default (old behaviour available): DAGMM's network was never trained
   (`detach_loss=True` reproduces); NormalizingFlow's score depended on the batch
   (`legacy_score=True` reproduces).
-- Seeds: `evaluate`, `DocumentDetector`, `TokenDetector` and the vector detectors seed the
+- Seeds: `evaluate`, `DocumentDetector`, `TokenDetector` and the embedding detectors seed the
   global random generators (Python, NumPy, PyTorch) before fitting, and score training data
   without disturbing them, so results equal those of a plain seeded benchmark script.
 - `DocumentDetector` and `TokenDetector` keep float64 input vectors as float64 (they were
@@ -27,7 +27,7 @@
   `normal_indices` / `anomalous_indices`, `stats`, `retokenize` (one word segmentation for
   normal and anomalous documents), `to_jsonl`.
 - `load_local` for JSONL, JSON and TokenCore `.npy` files; `TextADDataset.from_lists`.
-- `examples/token_level.py`: vector detectors on a dataset, token and document metrics.
+- `examples/token_level.py`: embedding detectors on a dataset, token and document metrics.
 
 ## 0.2.0
 - `SentenceEmbedder`: CLS, mean or last-token sentence vectors from any Hugging Face model.
@@ -36,7 +36,7 @@
 - Lists of words are now tokenised as running text and mapped back to words, so byte-level
   BPE tokenizers (GPT-2, RoBERTa, Qwen) see spaces between words; batches are right-padded so
   that decoder models give the same vectors with and without padding.
-- `DocumentDetector` and `TokenDetector`: use any vector detector on text.
+- `DocumentDetector` and `TokenDetector`: use any embedding detector on text.
 - `pytextad.metrics`: document and token AUROC / AP / FPR95, score aggregation, multi-seed
   `evaluate` (reproduces the TokenCore benchmark numbers exactly).
 - `supports_token` flag on every detector; `cache_dir` for DATE and FATE.

@@ -1,0 +1,8 @@
+/* let table cells wrap instead of overflowing horizontally (the theme sets nowrap) */
+.wy-table-responsive table td,
+.wy-table-responsive table th {
+    white-space: normal;
+}
+.wy-table-responsive {
+    overflow: visible;
+}
