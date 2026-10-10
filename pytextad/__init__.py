@@ -1,4 +1,4 @@
-"""PyTextAD: a unified library for text anomaly detection, in the style of PyOD."""
+"""PyTextAD: a unified library for document- and token-level text anomaly detection."""
 from .version import __version__
 from .models.cvdd import CVDD
 from .models.date import DATE

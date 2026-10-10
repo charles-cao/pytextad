@@ -11,7 +11,7 @@ class BaseVectorDetector(BaseTextDetector):
     """Base class of the vector detectors in :mod:`pytextad.models.vector`.
 
     The algorithm itself is the authors' code, kept in ``pytextad/models/vector/_vendor``;
-    this shell adds the PyOD interface and the conventions of PyTextAD:
+    this shell adds the common detector interface and the conventions of PyTextAD:
 
     * the global random generators (Python, NumPy, PyTorch) are seeded with
       ``random_state`` before the model is built and fitted, as in the benchmark scripts the

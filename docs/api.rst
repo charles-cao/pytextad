@@ -54,8 +54,7 @@ embeddings with ``TokenDetector``.
 Wrappers
 --------
 
-Turn any vector detector with ``fit`` and ``decision_function`` (all of PyOD) into a
-text detector.
+Turn any vector detector with ``fit`` and ``decision_function`` into a text detector.
 
 .. autosummary::
    :toctree: generated

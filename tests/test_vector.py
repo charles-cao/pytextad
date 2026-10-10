@@ -179,6 +179,7 @@ def test_vendored_aderh_is_the_official_file():
     import hashlib
     with open(os.path.join(VENDOR, "aderh.py"), "rb") as f:
         body = b"".join(f.readlines()[3:])           # drop the 3-line provenance header
+    body = body.replace(b"\r\n", b"\n")              # git on Windows may check out CRLF line ends
     # sha256 of aderh/_aderh.py at github.com/Walid10010/ADERH commit 5942c45
     assert hashlib.sha256(body).hexdigest() == "b8e0529c2323f98f3b75de68ee623963d1dbf5fd7bdf832b49cfef27bc4d2c15"
 

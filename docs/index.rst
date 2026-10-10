@@ -2,18 +2,17 @@ PyTextAD: Text Anomaly Detection in Python
 ==========================================
 
 **PyTextAD** is a Python library for detecting anomalies in text, at the level of whole
-documents and of individual tokens. All detectors share the interface of
-`PyOD <https://pyod.readthedocs.io>`_ (``fit``, ``decision_function``, ``predict``), and
-every re-implemented method is checked numerically against its original code.
+documents and of individual tokens. All detectors share one interface (``fit``,
+``decision_function``, ``predict``), and every detector is its authors' code or is checked
+numerically against it.
 
 .. code-block:: python
 
-   from pyod.models.knn import KNN
-   from pytextad import TokenDetector, TokenEmbedder
+   from pytextad import TokenCore, TokenDetector, TokenEmbedder
    from pytextad.datasets import load_dataset
 
    ds = load_dataset("restaurant_review")
-   det = TokenDetector(KNN(), embedder=TokenEmbedder("bert-base-uncased", word_pooling="max"))
+   det = TokenDetector(TokenCore(), embedder=TokenEmbedder("bert-base-uncased", word_pooling="max"))
    det.fit(ds.tokens[:500])
    word_scores = det.token_scores(ds.tokens[500:])      # one score per word
    doc_scores = det.decision_function(ds.tokens[500:])  # one score per document
@@ -108,11 +107,11 @@ Implemented algorithms
    * - DocumentDetector
      - document embeddings
      - no
-     - any PyOD detector :cite:`zhao2019pyod`
+     - any vector detector, e.g. PyOD :cite:`zhao2019pyod`
    * - TokenDetector
      - token embeddings
      - yes
-     - any PyOD detector :cite:`zhao2019pyod`
+     - any vector detector, e.g. PyOD :cite:`zhao2019pyod`
 
 "Via wrapper": a vector detector scores tokens when wrapped in ``TokenDetector``.
 

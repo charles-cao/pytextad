@@ -4,16 +4,15 @@ Quick Start
 Document-level detection
 ------------------------
 
-Any PyOD detector works on document embeddings through
+Any vector detector works on document embeddings through
 :class:`~pytextad.models.wrappers.DocumentDetector`; end-to-end text detectors take the
 texts directly.
 
 .. code-block:: python
 
-   from pyod.models.knn import KNN
-   from pytextad import DATE, DocumentDetector, SentenceEmbedder
+   from pytextad import DATE, SIK, DocumentDetector, SentenceEmbedder
 
-   det = DocumentDetector(KNN(), embedder=SentenceEmbedder("bert-base-uncased"))
+   det = DocumentDetector(SIK(), embedder=SentenceEmbedder("bert-base-uncased"))
    det.fit(train_texts)
    scores = det.decision_function(test_texts)   # higher = more anomalous
    labels = det.predict(test_texts)             # 0 / 1
@@ -29,10 +28,10 @@ scores.
 
 .. code-block:: python
 
-   from pytextad import TokenDetector, TokenEmbedder
+   from pytextad import TokenCore, TokenDetector, TokenEmbedder
 
    emb = TokenEmbedder("bert-base-uncased", word_pooling="max")
-   det = TokenDetector(KNN(), embedder=emb, aggregation="max")
+   det = TokenDetector(TokenCore(), embedder=emb, aggregation="max")
    det.fit(train_words)                       # documents as lists of words
    word_scores = det.token_scores(test_words)
    doc_scores = det.decision_function(test_words)
@@ -49,8 +48,8 @@ FPR at 95 % TPR, at the document level and, for token-level detectors, at the to
 
    X_train, _ = emb.transform(train_words, cache="train.npz")   # embed once, reuse
    X_test, _ = emb.transform(test_words, cache="test.npz")
-   res = evaluate(TokenDetector(KNN()), X_train, X_test, token_labels=test_labels)
-   print(format_results({"KNN": res}))
+   res = evaluate(TokenDetector(TokenCore()), X_train, X_test, token_labels=test_labels)
+   print(format_results({"TokenCore": res}))
 
 Input of each detector
 ----------------------

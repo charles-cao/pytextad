@@ -10,7 +10,7 @@ The ``examples`` folder of the repository has two scripts.
 
    python examples/quickstart.py
 
-``examples/token_level.py`` runs PyOD detectors on a built-in dataset and reports token-
+``examples/token_level.py`` runs vector detectors on a built-in dataset and reports token-
 and document-level AUROC, AP and FPR at 95 % TPR over three seeds:
 
 .. code-block:: bash

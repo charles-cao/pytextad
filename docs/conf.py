@@ -27,6 +27,7 @@ source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
 exclude_patterns = ["_build"]
 
 html_theme = "sphinx_rtd_theme"
+html_extra_path = ["_extra"]          # site-verification file for Google Search Console
 html_title = f"PyTextAD {version}"
 html_theme_options = {"navigation_depth": 2, "collapse_navigation": False}
 

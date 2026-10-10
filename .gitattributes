@@ -1,0 +1,3 @@
+# keep third-party code byte-identical to its source on every platform
+pytextad/models/vector/_vendor/*.py text eol=lf
+tests/reference/*.py text eol=lf

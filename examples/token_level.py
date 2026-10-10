@@ -1,6 +1,6 @@
-"""Token-level and document-level benchmark of PyOD detectors on a built-in dataset.
+"""Token-level and document-level benchmark of vector detectors on a built-in dataset.
 
-    pip install pytextad pyod
+    pip install pytextad
     python examples/token_level.py --dataset restaurant_review --model bert-base-uncased
 
 Word vectors from a frozen encoder (max over sub-words); each detector is fitted on the
@@ -15,10 +15,7 @@ other documents; ``--train_ratio 0`` trains and tests on the whole, contaminated
 import argparse
 
 import numpy as np
-from pyod.models.iforest import IForest
-from pyod.models.knn import KNN
-
-from pytextad import TokenDetector, TokenEmbedder
+from pytextad import SIK, TokenCore, TokenDetector, TokenEmbedder
 from pytextad.datasets import list_datasets, load_dataset
 from pytextad.metrics import evaluate, format_results
 
@@ -60,7 +57,7 @@ def main():
     y_test = [lab[i] for lab, i in zip(test.token_labels, ids)]
 
     results = {}
-    for name, det in [("KNN", KNN()), ("IForest", IForest())]:
+    for name, det in [("TokenCore", TokenCore()), ("SIK", SIK())]:
         results[name] = evaluate(TokenDetector(det), X_train, X_test, token_labels=y_test, seeds=(0, 1, 2))
     print(format_results(results))
 

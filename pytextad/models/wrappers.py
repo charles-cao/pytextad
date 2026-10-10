@@ -1,7 +1,7 @@
-"""Turn any vector detector (PyOD, scikit-learn style, SIK, RSRAE, ...) into a text detector.
+"""Turn any vector detector (SIK, TokenCore, RSRAE, or your own) into a text detector.
 
 A "vector detector" is any object with ``fit(X)`` and ``decision_function(X)`` working on a
-2-D array, higher scores meaning more anomalous; every PyOD model qualifies.
+2-D array, higher scores meaning more anomalous.
 
 * ``DocumentDetector``: one vector per document (e.g. from ``SentenceEmbedder``).
 * ``TokenDetector``   : one vector per token; the detector is fitted on the tokens of all
@@ -30,7 +30,7 @@ def _as_float(x):
 
 def _seed(wrapper):
     """Seed the wrapped detector and the global generators before fitting, as benchmark
-    scripts do (deep PyOD models and most published code use the global generators)."""
+    scripts do (most published deep detectors use the global generators)."""
     if wrapper.random_state is None:
         return
     if hasattr(wrapper.detector, "random_state"):
@@ -39,13 +39,13 @@ def _seed(wrapper):
 
 
 class DocumentDetector(BaseTextDetector):
-    """Use any vector anomaly detector (e.g. from PyOD :cite:`zhao2019pyod`) on document embeddings.
+    """Use any vector anomaly detector (e.g. SIK, or a PyOD detector :cite:`zhao2019pyod`) on document embeddings.
 
     Parameters
     ----------
     detector : object
         Unfitted detector with ``fit(X)`` and ``decision_function(X)``, for example
-        ``pyod.models.knn.KNN()``.
+        ``pytextad.SIK()``.
     embedder : SentenceEmbedder or None, default=None
         If given, ``fit`` and ``decision_function`` accept raw texts; otherwise ``X`` is
         a ``[n_documents, dim]`` array.
@@ -59,8 +59,8 @@ class DocumentDetector(BaseTextDetector):
 
     Examples
     --------
-    >>> from pyod.models.knn import KNN
-    >>> det = DocumentDetector(KNN(), embedder=SentenceEmbedder("bert-base-uncased"))
+    >>> from pytextad import SIK, DocumentDetector, SentenceEmbedder
+    >>> det = DocumentDetector(SIK(), embedder=SentenceEmbedder("bert-base-uncased"))
     >>> scores = det.fit(train_texts).decision_function(test_texts)
     """
     supports_token = False
@@ -91,7 +91,7 @@ class DocumentDetector(BaseTextDetector):
 
 
 class TokenDetector(BaseTextDetector):
-    """Use any vector anomaly detector (e.g. from PyOD :cite:`zhao2019pyod`) on token embeddings.
+    """Use any vector anomaly detector (e.g. TokenCore, or a PyOD detector :cite:`zhao2019pyod`) on token embeddings.
 
     The detector is fitted on the tokens of all training documents together and scores
     every token; a document's score aggregates its token scores.
@@ -100,7 +100,7 @@ class TokenDetector(BaseTextDetector):
     ----------
     detector : object
         Unfitted detector with ``fit(X)`` and ``decision_function(X)``, for example
-        ``pyod.models.knn.KNN()``.
+        ``pytextad.SIK()``.
     embedder : TokenEmbedder or None, default=None
         If given, ``fit`` and ``decision_function`` accept raw texts; otherwise ``X`` is
         a list of ``[n_tokens, dim]`` arrays, one per document.
@@ -118,9 +118,9 @@ class TokenDetector(BaseTextDetector):
 
     Examples
     --------
-    >>> from pyod.models.knn import KNN
+    >>> from pytextad import TokenCore, TokenDetector, TokenEmbedder
     >>> emb = TokenEmbedder("bert-base-uncased", word_pooling="max")
-    >>> det = TokenDetector(KNN(), embedder=emb).fit(train_words)
+    >>> det = TokenDetector(TokenCore(), embedder=emb).fit(train_words)
     >>> word_scores = det.token_scores(test_words)
     """
     supports_token = True

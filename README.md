@@ -8,8 +8,7 @@
 **PyTextAD** is a Python library for detecting anomalies in text, both whole anomalous
 documents and the individual tokens that make them anomalous.
 
-* **23 detectors** with one interface, the one of [PyOD](https://github.com/yzhao062/pyod):
-  `fit`, `decision_function`, `predict`.
+* **23 detectors** with one interface: `fit`, `decision_function`, `predict`.
 * **Token-level detection**: any detector scores every token of a document, and token scores
   are aggregated into document scores.
 * **Faithful implementations**: each detector is the authors' code, or is checked numerically
@@ -33,7 +32,8 @@ If you use PyTextAD, please cite it, together with the papers of the detectors y
 }
 ```
 
-If you use the built-in datasets, please also cite [1].
+If you use the built-in datasets, please also cite *Towards Token-Level Text Anomaly Detection*
+(WWW 2026), listed under [References](#references).
 
 ## Installation
 
@@ -71,35 +71,36 @@ print(format_results({"SIK": result}))     # token and document AUROC, AP, FPR95
 
 | Abbr | Algorithm | Year | Token scores | Ref |
 |---|---|:-:|:-:|:-:|
-| CVDD | Context Vector Data Description | 2019 | yes | [3] |
-| DATE | Detecting Anomalies in Text via Self-Supervision of Transformers | 2021 | yes | [4] |
-| FATE | Few-shot Anomaly Detection in Text with Deviation Learning | 2023 | no | [5] |
+| CVDD | Context Vector Data Description | 2019 | yes | [1] |
+| DATE | Detecting Anomalies in Text via Self-Supervision of Transformers | 2021 | yes | [2] |
+| FATE | Few-shot Anomaly Detection in Text with Deviation Learning | 2023 | no | [3] |
 
 **Vector detectors** take one vector per document or per token. Wrapped in
 `TokenDetector`, each of them scores every token.
 
 | Abbr | Algorithm | Year | Ref |
 |---|---|:-:|:-:|
-| NormalizingFlow | Planar normalizing flow | 2015 | [6] |
-| DAGMM | Deep Autoencoding Gaussian Mixture Model | 2018 | [7] |
-| GANomaly | Adversarially trained encoder-decoder-encoder | 2018 | [8] |
-| RSRAE | Robust Subspace Recovery AutoEncoder | 2020 | [9] |
-| GOAD | Classification-based anomaly detection with random transformations | 2020 | [10] |
-| DROCC | Distributionally Robust One-Class Classifier | 2020 | [11] |
-| ICL | Internal Contrastive Learning | 2022 | [12] |
-| SLAD | Scale Learning-based Anomaly Detection | 2023 | [13] |
-| DTE | Diffusion Time Estimation (categorical, inverse-gamma, Gaussian, non-parametric) | 2024 | [14] |
-| DDPM | Denoising diffusion model, reconstruction error | 2024 | [14] |
-| MCM | Masked Cell Modeling | 2024 | [15] |
-| DRL | Decomposed Representation Learning | 2025 | [16] |
-| DDAE | Diffusion-Scheduled Denoising Autoencoder | 2025 | [17] |
-| SIK | Simplified Isolation Kernel | 2025 | [2] |
-| ADERH | Ensemble of Random Pairs of Hyperspheres | 2025 | [18] |
-| TCCM | Time-Conditioned Contraction Matching | 2025 | [19] |
-| TokenCore | Nearest-neighbour memory bank of token embeddings | 2026 | [1] |
+| NormalizingFlow | Planar normalizing flow | 2015 | [4] |
+| DAGMM | Deep Autoencoding Gaussian Mixture Model | 2018 | [5] |
+| GANomaly | Adversarially trained encoder-decoder-encoder | 2018 | [6] |
+| RSRAE | Robust Subspace Recovery AutoEncoder | 2020 | [7] |
+| GOAD | Classification-based anomaly detection with random transformations | 2020 | [8] |
+| DROCC | Distributionally Robust One-Class Classifier | 2020 | [9] |
+| ICL | Internal Contrastive Learning | 2022 | [10] |
+| SLAD | Scale Learning-based Anomaly Detection | 2023 | [11] |
+| DTE | Diffusion Time Estimation (categorical, inverse-gamma, Gaussian, non-parametric) | 2024 | [12] |
+| DDPM | Denoising diffusion model, reconstruction error | 2024 | [12] |
+| MCM | Masked Cell Modeling | 2024 | [13] |
+| DRL | Decomposed Representation Learning | 2025 | [14] |
+| DDAE | Diffusion-Scheduled Denoising Autoencoder | 2025 | [15] |
+| SIK | Simplified Isolation Kernel | 2025 | [16] |
+| ADERH | Ensemble of Random Pairs of Hyperspheres | 2025 | [17] |
+| TCCM | Time-Conditioned Contraction Matching | 2025 | [18] |
+| TokenCore | Nearest-neighbour memory bank of token embeddings | 2026 | [19] |
 
-**Wrappers** turn any PyOD detector into a text detector: `DocumentDetector` (one embedding
-per document) and `TokenDetector` (one embedding per token) [20].
+**Wrappers** turn any vector detector with `fit` and `decision_function`, including those of
+PyOD [20], into a text detector: `DocumentDetector` (one embedding per document) and
+`TokenDetector` (one embedding per token).
 
 ## Datasets
 
@@ -127,42 +128,42 @@ research-only licence for GOAD); see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICE
 
 ## References
 
-[1] Y. Cao, B. Yu, S. Yang, M. Liu, Y. Yang. Towards Token-Level Text Anomaly Detection. *The ACM Web Conference (WWW)*, 2026. [doi:10.1145/3774904.3792952](https://doi.org/10.1145/3774904.3792952)
+[1] L. Ruff, Y. Zemlyanskiy, R. Vandermeulen, T. Schnake, M. Kloft. Self-Attentive, Multi-Context One-Class Classification for Unsupervised Anomaly Detection on Text. *ACL*, 2019.
 
-[2] Y. Cao, S. Yang, Y. Yang, L. Qi, M. Liu. Text Anomaly Detection with Simplified Isolation Kernel. *Findings of EMNLP*, 2025. [doi:10.18653/v1/2025.findings-emnlp.680](https://doi.org/10.18653/v1/2025.findings-emnlp.680)
+[2] A. Manolache, F. Brad, E. Burceanu. DATE: Detecting Anomalies in Text via Self-Supervision of Transformers. *NAACL*, 2021.
 
-[3] L. Ruff, Y. Zemlyanskiy, R. Vandermeulen, T. Schnake, M. Kloft. Self-Attentive, Multi-Context One-Class Classification for Unsupervised Anomaly Detection on Text. *ACL*, 2019.
+[3] A. S. Das, A. Ajay, S. Saha, M. Bhuyan. Few-shot Anomaly Detection in Text with Deviation Learning. *ICONIP*, 2023.
 
-[4] A. Manolache, F. Brad, E. Burceanu. DATE: Detecting Anomalies in Text via Self-Supervision of Transformers. *NAACL*, 2021.
+[4] D. J. Rezende, S. Mohamed. Variational Inference with Normalizing Flows. *ICML*, 2015.
 
-[5] A. S. Das, A. Ajay, S. Saha, M. Bhuyan. Few-shot Anomaly Detection in Text with Deviation Learning. *ICONIP*, 2023.
+[5] B. Zong, Q. Song, M. R. Min, W. Cheng, C. Lumezanu, D. Cho, H. Chen. Deep Autoencoding Gaussian Mixture Model for Unsupervised Anomaly Detection. *ICLR*, 2018.
 
-[6] D. J. Rezende, S. Mohamed. Variational Inference with Normalizing Flows. *ICML*, 2015.
+[6] S. Akcay, A. Atapour-Abarghouei, T. P. Breckon. GANomaly: Semi-Supervised Anomaly Detection via Adversarial Training. *ACCV*, 2018.
 
-[7] B. Zong, Q. Song, M. R. Min, W. Cheng, C. Lumezanu, D. Cho, H. Chen. Deep Autoencoding Gaussian Mixture Model for Unsupervised Anomaly Detection. *ICLR*, 2018.
+[7] C.-H. Lai, D. Zou, G. Lerman. Robust Subspace Recovery Layer for Unsupervised Anomaly Detection. *ICLR*, 2020.
 
-[8] S. Akcay, A. Atapour-Abarghouei, T. P. Breckon. GANomaly: Semi-Supervised Anomaly Detection via Adversarial Training. *ACCV*, 2018.
+[8] L. Bergman, Y. Hoshen. Classification-Based Anomaly Detection for General Data. *ICLR*, 2020.
 
-[9] C.-H. Lai, D. Zou, G. Lerman. Robust Subspace Recovery Layer for Unsupervised Anomaly Detection. *ICLR*, 2020.
+[9] S. Goyal, A. Raghunathan, M. Jain, H. V. Simhadri, P. Jain. DROCC: Deep Robust One-Class Classification. *ICML*, 2020.
 
-[10] L. Bergman, Y. Hoshen. Classification-Based Anomaly Detection for General Data. *ICLR*, 2020.
+[10] T. Shenkar, L. Wolf. Anomaly Detection for Tabular Data with Internal Contrastive Learning. *ICLR*, 2022.
 
-[11] S. Goyal, A. Raghunathan, M. Jain, H. V. Simhadri, P. Jain. DROCC: Deep Robust One-Class Classification. *ICML*, 2020.
+[11] H. Xu, Y. Wang, J. Wei, S. Jian, Y. Li, N. Liu. Fascinating Supervisory Signals and Where to Find Them: Deep Anomaly Detection with Scale Learning. *ICML*, 2023.
 
-[12] T. Shenkar, L. Wolf. Anomaly Detection for Tabular Data with Internal Contrastive Learning. *ICLR*, 2022.
+[12] V. Livernoche, V. Jain, Y. Hezaveh, S. Ravanbakhsh. On Diffusion Modeling for Anomaly Detection. *ICLR*, 2024. [arXiv:2305.18593](https://arxiv.org/abs/2305.18593)
 
-[13] H. Xu, Y. Wang, J. Wei, S. Jian, Y. Li, N. Liu. Fascinating Supervisory Signals and Where to Find Them: Deep Anomaly Detection with Scale Learning. *ICML*, 2023.
+[13] J. Yin, Y. Qiao, Z. Zhou, X. Wang, J. Yang. MCM: Masked Cell Modeling for Anomaly Detection in Tabular Data. *ICLR*, 2024.
 
-[14] V. Livernoche, V. Jain, Y. Hezaveh, S. Ravanbakhsh. On Diffusion Modeling for Anomaly Detection. *ICLR*, 2024. [arXiv:2305.18593](https://arxiv.org/abs/2305.18593)
+[14] H. Ye, H. Zhao, W. Fan, M. Zhou, D. Guo, Y. Chang. DRL: Decomposed Representation Learning for Tabular Anomaly Detection. *ICLR*, 2025.
 
-[15] J. Yin, Y. Qiao, Z. Zhou, X. Wang, J. Yang. MCM: Masked Cell Modeling for Anomaly Detection in Tabular Data. *ICLR*, 2024.
+[15] T. Sattarov, M. Schreyer, D. Borth. Diffusion-Scheduled Denoising Autoencoders for Anomaly Detection in Tabular Data. *KDD*, 2025. [arXiv:2508.00758](https://arxiv.org/abs/2508.00758)
 
-[16] H. Ye, H. Zhao, W. Fan, M. Zhou, D. Guo, Y. Chang. DRL: Decomposed Representation Learning for Tabular Anomaly Detection. *ICLR*, 2025.
+[16] Y. Cao, S. Yang, Y. Yang, L. Qi, M. Liu. Text Anomaly Detection with Simplified Isolation Kernel. *Findings of EMNLP*, 2025. [doi:10.18653/v1/2025.findings-emnlp.680](https://doi.org/10.18653/v1/2025.findings-emnlp.680)
 
-[17] T. Sattarov, M. Schreyer, D. Borth. Diffusion-Scheduled Denoising Autoencoders for Anomaly Detection in Tabular Data. *KDD*, 2025. [arXiv:2508.00758](https://arxiv.org/abs/2508.00758)
+[17] W. Durani, C. Leiber, K. Durani, C. Plant, C. Böhm. Anomaly Detection by an Ensemble of Random Pairs of Hyperspheres. *NeurIPS*, 2025.
 
-[18] W. Durani, C. Leiber, K. Durani, C. Plant, C. Böhm. Anomaly Detection by an Ensemble of Random Pairs of Hyperspheres. *NeurIPS*, 2025.
+[18] Z. Li, Q. Huang, Y. Zhu, L. Yang, M. M. Amiri, N. van Stein, M. van Leeuwen. Scalable, Explainable and Provably Robust Anomaly Detection with One-Step Flow Matching. *NeurIPS*, 2025. [arXiv:2510.18328](https://arxiv.org/abs/2510.18328)
 
-[19] Z. Li, Q. Huang, Y. Zhu, L. Yang, M. M. Amiri, N. van Stein, M. van Leeuwen. Scalable, Explainable and Provably Robust Anomaly Detection with One-Step Flow Matching. *NeurIPS*, 2025. [arXiv:2510.18328](https://arxiv.org/abs/2510.18328)
+[19] Y. Cao, B. Yu, S. Yang, M. Liu, Y. Yang. Towards Token-Level Text Anomaly Detection. *The ACM Web Conference (WWW)*, 2026. [doi:10.1145/3774904.3792952](https://doi.org/10.1145/3774904.3792952)
 
 [20] Y. Zhao, Z. Nasrullah, Z. Li. PyOD: A Python Toolbox for Scalable Outlier Detection. *JMLR*, 20(96):1-7, 2019.

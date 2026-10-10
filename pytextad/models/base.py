@@ -1,6 +1,6 @@
-"""Common interface for all detectors, modelled on PyOD's BaseDetector.
+"""Common interface for all detectors, following the scikit-learn outlier-detection conventions.
 
-Conventions (identical to PyOD):
+Conventions:
   * fit(X, y=None) returns self and sets ``decision_scores_`` (scores of the training data),
     ``threshold_`` and ``labels_``.
   * decision_function(X) returns one score per sample; higher = more anomalous.
@@ -18,7 +18,7 @@ import torch
 
 
 class BaseTextDetector(abc.ABC):
-    """Base class of all PyTextAD detectors, with the PyOD interface.
+    """Base class of all PyTextAD detectors.
 
     ``fit(X)`` sets ``decision_scores_``, ``threshold_`` and ``labels_``;
     ``decision_function(X)`` returns one score per document (higher = more anomalous);

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pytextad"
 dynamic = ["version"]
-description = "A unified library for text anomaly detection (document- and token-level), in the style of PyOD"
+description = "A unified library for text anomaly detection (document- and token-level)"
 readme = "README.md"
 license = "BSD-2-Clause"
 license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]

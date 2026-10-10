@@ -27,8 +27,7 @@ the training words, and evaluate at the token and document levels.
 .. code-block:: python
 
    import numpy as np
-   from pyod.models.knn import KNN
-   from pytextad import TokenDetector, TokenEmbedder
+   from pytextad import TokenCore, TokenDetector, TokenEmbedder
    from pytextad.datasets import load_dataset
    from pytextad.metrics import evaluate, format_results
 
@@ -49,8 +48,8 @@ the training words, and evaluate at the token and document levels.
    # words beyond 512 sub-words have no vector: keep the labels of the embedded words
    y_test = [labels[k] for labels, k in zip(test.token_labels, kept)]
 
-   res = evaluate(TokenDetector(KNN()), X_train, X_test, token_labels=y_test, seeds=(0, 1, 2))
-   print(format_results({"KNN": res}))
+   res = evaluate(TokenDetector(TokenCore()), X_train, X_test, token_labels=y_test, seeds=(0, 1, 2))
+   print(format_results({"TokenCore": res}))
 
 The output has one line per level, each with AUROC, AP and FPR at 95 % TPR as mean and
 standard deviation over the seeds:
