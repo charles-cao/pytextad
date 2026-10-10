@@ -47,7 +47,7 @@ Install the PyTorch build that matches your CUDA version first (https://pytorch.
 ## Quick start
 
 ```python
-from pytextad import SIK, TokenDetector, TokenEmbedder
+from pytextad import SIK, TokenDetector, TokenEmbedder, align_labels
 from pytextad.datasets import load_dataset
 from pytextad.metrics import evaluate, format_results
 
@@ -56,11 +56,12 @@ normal, anomalous = ds.normal_indices, ds.anomalous_indices
 train = ds.subset(normal[:500])                         # 500 normal reviews
 test = ds.subset(list(normal[500:]) + list(anomalous))  # the other reviews
 
-emb = TokenEmbedder("bert-base-uncased", word_pooling="max")      # one vector per word
-X_train, _ = emb.transform(train.tokens)
-X_test, kept = emb.transform(test.tokens)
-y_test = [labels[k] for labels, k in zip(test.token_labels, kept)]
+emb = TokenEmbedder("bert-base-uncased")              # one vector per sub-word
+X_train = emb.transform(train.tokens)                 # (vectors, word index of each sub-word)
+X_test = emb.transform(test.tokens)
+y_test = align_labels(test.token_labels, X_test[1])  # drops words cut off at 512 sub-words
 
+# every sub-word is scored; a word's score is the max over its sub-words
 result = evaluate(TokenDetector(SIK()), X_train, X_test, token_labels=y_test)
 print(format_results({"SIK": result}))     # token and document AUROC, AP, FPR95
 ```
@@ -76,7 +77,8 @@ print(format_results({"SIK": result}))     # token and document AUROC, AP, FPR95
 | FATE | Few-shot Anomaly Detection in Text with Deviation Learning | 2023 | no | [3] |
 
 **Embedding detectors** take one vector per document or per token. Wrapped in
-`TokenDetector`, each of them scores every token.
+`TokenDetector`, each of them scores every sub-word, and sub-word scores are combined into
+word scores.
 
 | Abbr | Algorithm | Year | Ref |
 |---|---|:-:|:-:|

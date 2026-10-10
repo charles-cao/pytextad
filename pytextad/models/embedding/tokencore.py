@@ -7,8 +7,10 @@ class TokenCore(BaseEmbeddingDetector):
     """Nearest-neighbour memory bank of normal token embeddings :cite:`cao2026tokencore`.
 
     Every training vector is stored; a vector's anomaly score is its distance to the
-    nearest training vectors. Used on token embeddings through
-    :class:`~pytextad.models.wrappers.TokenDetector`, it is the TokenCore method.
+    nearest training vectors. Used on word vectors pooled from sub-words
+    (``TokenEmbedder(..., word_pooling="max")``) through
+    :class:`~pytextad.models.wrappers.TokenDetector`, it is the TokenCore method as published;
+    with sub-word vectors (the default), sub-words are scored and their scores combined.
 
     Parameters
     ----------
@@ -31,7 +33,7 @@ class TokenCore(BaseEmbeddingDetector):
     Examples
     --------
     >>> from pytextad import TokenCore, TokenDetector, TokenEmbedder
-    >>> det = TokenDetector(TokenCore(), embedder=TokenEmbedder("bert-base-uncased", word_pooling="max"))
+    >>> det = TokenDetector(TokenCore(), embedder=TokenEmbedder("bert-base-uncased"))
     >>> word_scores = det.fit(train_words).token_scores(test_words)
     """
 

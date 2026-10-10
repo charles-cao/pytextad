@@ -29,7 +29,7 @@ Example
    from pytextad.datasets import load_dataset
 
    ds = load_dataset("restaurant_review")
-   emb = TokenEmbedder("bert-base-uncased", word_pooling="max")   # one vector per word
+   emb = TokenEmbedder("bert-base-uncased")             # one vector per sub-word
    det = TokenDetector(TokenCore(), embedder=emb)
    det.fit(ds.tokens[:500])
    word_scores = det.token_scores(ds.tokens[500:])      # one score per word

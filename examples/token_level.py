@@ -3,10 +3,13 @@
     pip install pytextad
     python examples/token_level.py --dataset restaurant_review --model bert-base-uncased
 
-Word vectors from a frozen encoder (max over sub-words); each detector is fitted on the
-words of the training documents; every test word gets a score (token-level AUROC / AP) and
-word scores are aggregated per document by max and mean (document-level AUROC / AP).
-Seeds 0, 1, 2.
+Sub-word vectors from a frozen encoder; each detector is fitted on the sub-words of the
+training documents and scores every test sub-word; a word's score is the max over its
+sub-words (token-level AUROC / AP), and word scores are aggregated per document by max and
+mean (document-level AUROC / AP). Seeds 0, 1, 2.
+
+``--pool_vectors`` pools the sub-word vectors of each word first (element-wise max) and
+scores the pooled vector, as in the published TokenCore experiments.
 
 The split is that of ``split_anomaly_data`` in the TokenCore / CA-PTD code:
 ``--train_ratio 0.5`` trains on half of the normal documents (seed 42) and tests on all
@@ -15,7 +18,7 @@ other documents; ``--train_ratio 0`` trains and tests on the whole, contaminated
 import argparse
 
 import numpy as np
-from pytextad import SIK, TokenCore, TokenDetector, TokenEmbedder
+from pytextad import SIK, TokenCore, TokenDetector, TokenEmbedder, align_labels
 from pytextad.datasets import list_datasets, load_dataset
 from pytextad.metrics import evaluate, format_results
 
@@ -40,6 +43,8 @@ def main():
     ap.add_argument("--retokenize", action="store_true")
     ap.add_argument("--train_ratio", type=float, default=0.5)
     ap.add_argument("--split_seed", type=int, default=42)
+    ap.add_argument("--pool_vectors", action="store_true",
+                    help="max-pool sub-word vectors per word before scoring (published TokenCore)")
     args = ap.parse_args()
 
     ds = load_dataset(args.dataset, retokenize=args.retokenize)
@@ -48,13 +53,15 @@ def main():
     train, test = ds.subset(train_idx), ds.subset(test_idx)
     print(f"train: {len(train)} documents, test: {len(test)} documents ({test.labels.sum()} anomalous)")
 
-    emb = TokenEmbedder(args.model, word_pooling="max", cache_dir=args.cache_dir, device=args.device)
+    pooling = "max" if args.pool_vectors else None
+    emb = TokenEmbedder(args.model, word_pooling=pooling, cache_dir=args.cache_dir, device=args.device)
     tag = (f"{args.dataset}{'_rt' if args.retokenize else ''}_r{args.train_ratio}_s{args.split_seed}_"
+           f"{'word' if pooling else 'sub'}_"
            f"{args.model.replace('/', '_').replace(':', '_').replace(chr(92), '_')}")
-    X_train, _ = emb.transform(train.tokens, cache=f"{tag}_train.npz")
-    X_test, ids = emb.transform(test.tokens, cache=f"{tag}_test.npz")
+    X_train = emb.transform(train.tokens, cache=f"{tag}_train.npz")
+    X_test = emb.transform(test.tokens, cache=f"{tag}_test.npz")
     # words cut off by max_length have no vector: keep the labels of the embedded words only
-    y_test = [lab[i] for lab, i in zip(test.token_labels, ids)]
+    y_test = align_labels(test.token_labels, X_test[1])
 
     results = {}
     for name, det in [("TokenCore", TokenCore()), ("SIK", SIK())]:

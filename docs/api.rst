@@ -89,6 +89,7 @@ models.
    SentenceEmbedder
    mean_pool
    words_from_subwords
+   align_labels
    encode_words
 
 .. _api-datasets:

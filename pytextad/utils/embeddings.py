@@ -131,8 +131,9 @@ class TokenEmbedder(_HFEmbedder):
     keep_special_tokens : bool, default=False
         Keep [CLS]/[SEP]-like positions (sub-word mode only).
     word_pooling : {None, "max", "mean", "first"}, default=None
-        None returns one vector per sub-word; otherwise one vector per word, pooling its
-        sub-words (documents must then be word lists; TokenCore uses "max").
+        None returns one vector per sub-word (``TokenDetector`` then combines sub-word
+        scores per word); otherwise one vector per word, pooling its sub-word vectors
+        (documents must then be word lists; TokenCore as published uses "max").
     device : str or None, default=None
         "cuda" or "cpu"; None picks CUDA when available.
     dtype : torch.dtype, default=torch.float32
@@ -194,6 +195,9 @@ class TokenEmbedder(_HFEmbedder):
                     pos = keep.nonzero().squeeze(-1).numpy()
                     embs.append(H[i, pos].astype(np.float32))
                     ids.append([wi[j] for j in pos])
+                    if not isinstance(batch[i], str) and \
+                            len({w for w in ids[-1] if w is not None}) < len(batch[i]):
+                        incomplete.append(b + i)
                 else:
                     groups = {}
                     for j, w in enumerate(wi):
@@ -371,4 +375,17 @@ def words_from_subwords(scores, word_ids, n_words=None, agg="max"):
     if agg == "mean":
         out = out / np.maximum(cnt, 1)
     out[cnt == 0] = np.nan
+    return out
+
+
+def align_labels(token_labels, ids):
+    """Keep the labels of the words that have a vector.
+
+    ``ids`` is the second output of ``TokenEmbedder.transform`` (sub-word or word mode).
+    The result is aligned with ``TokenDetector.token_scores`` given the ``(embeddings, ids)``
+    pair: words cut off by ``max_length`` are dropped."""
+    out = []
+    for lab, i in zip(token_labels, ids):
+        kept = sorted({w for w in i if w is not None})
+        out.append(np.asarray(lab)[kept])
     return out

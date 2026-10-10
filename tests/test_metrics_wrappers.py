@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from sklearn.metrics import average_precision_score, roc_auc_score
 
-from pytextad import CVDD, RSRAE, DocumentDetector, TokenDetector, TokenEmbedder, SentenceEmbedder
+from pytextad import CVDD, RSRAE, DocumentDetector, TokenDetector, TokenEmbedder, SentenceEmbedder, align_labels
 from pytextad.metrics import (aggregate, document_labels, document_metrics, evaluate, format_results,
                               fpr_at_tpr, token_metrics)
 
@@ -102,6 +102,44 @@ def test_token_detector_with_word_embedder_restores_word_positions(tiny_bert):
     with pytest.warns(UserWarning):
         ts = det.token_scores([["stock"] * 20])           # 10 words survive truncation
     assert len(ts[0]) == 20 and np.isnan(ts[0][10:]).all() and not np.isnan(ts[0][:10]).any()
+
+
+def test_subword_scores_are_combined_per_word(tiny_bert):
+    """Default: every sub-word is scored and scores are combined per given word. Grouping two
+    words into one item ("bank price") changes neither the vectors nor the scores of the
+    sub-words; the item's score is the max of the two words' scores."""
+    path, _ = tiny_bert
+    emb = TokenEmbedder(path, device=DEV)                      # sub-word vectors
+    train = [t.split() for t in make_texts(20, WORDS, 3)]
+    det = TokenDetector(MeanDistance(), embedder=emb).fit(train)
+    split = [["stock", "bank", "price", "team"]]
+    grouped = [["stock", "bank price", "team"]]
+    s_split, s_grouped = det.token_scores(split)[0], det.token_scores(grouped)[0]
+    assert len(s_split) == 4 and len(s_grouped) == 3
+    assert s_grouped[1] == max(s_split[1], s_split[2])
+    assert s_grouped[0] == s_split[0] and s_grouped[2] == s_split[3]
+    assert np.array_equal(emb.transform(split)[0][0], emb.transform(grouped)[0][0])
+    # "mean" combines by averaging
+    det.subword_aggregation = "mean"
+    assert np.isclose(det.token_scores(grouped)[0][1], np.mean(det.token_scores(split)[0][1:3]))
+
+
+def test_precomputed_pair_matches_text_input(tiny_bert):
+    path, _ = tiny_bert
+    emb = TokenEmbedder(path, max_length=12, device=DEV)
+    train = [t.split() for t in make_texts(20, WORDS, 4)]
+    test = [t.split() for t in make_texts(6, WORDS, 5)] + [["stock"] * 20]   # last one truncated
+    labels = [np.arange(len(d)) % 2 for d in test]
+    a = TokenDetector(MeanDistance(), embedder=emb).fit(train)
+    b = TokenDetector(MeanDistance()).fit(emb.transform(train))
+    with pytest.warns(UserWarning):
+        ta = a.token_scores(test)
+    pair = emb.transform(test)
+    tb = b.token_scores(pair)
+    y = align_labels(labels, pair[1])
+    for sa, sb, yy in zip(ta, tb, y):
+        assert np.array_equal(sa[~np.isnan(sa)], sb) and len(yy) == len(sb)
+    assert np.array_equal(a.decision_function(test[:6]), b.decision_function(emb.transform(test[:6])))
 
 
 def test_rsrae_as_token_detector():

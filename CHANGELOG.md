@@ -1,6 +1,14 @@
 # Changelog
 
 ## Unreleased
+- `TokenDetector` scores every sub-word and combines the scores of a word's sub-words into
+  the word's score (`subword_aggregation="max" | "mean"`) when used with sub-word vectors
+  (`TokenEmbedder` without `word_pooling`, now used in all examples). The vectors no longer
+  depend on how the words are grouped (an annotated span given as one item). Pooling
+  sub-word vectors first, as in TokenCore, remains available with `word_pooling="max"`.
+- `TokenDetector` accepts the `(embeddings, ids)` pair returned by `TokenEmbedder.transform`;
+  `align_labels` keeps the labels of the words that have a vector.
+- `TokenEmbedder` warns about truncated words in sub-word mode too.
 - Embedding detectors in `pytextad.models.embedding`: `TokenCore` (Cao et al., WWW 2026) and `SIK`
   (Cao et al., Findings of EMNLP 2025), the authors' code unchanged and checked against the
   originals; `ADERH` (Durani et al., NeurIPS 2025, official package) and `TCCM` (Li et al.,

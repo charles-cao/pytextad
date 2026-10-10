@@ -22,19 +22,32 @@ texts directly.
 Token-level detection
 ---------------------
 
-:class:`~pytextad.models.wrappers.TokenDetector` fits a embedding detector on the words of
-all training documents, scores every word, and aggregates word scores into document
-scores.
+:class:`~pytextad.models.wrappers.TokenDetector` fits an embedding detector on the sub-word
+vectors of all training documents and scores every sub-word. The scores of a word's
+sub-words are combined into the word's score (maximum by default), and word scores into
+the document score.
 
 .. code-block:: python
 
    from pytextad import TokenCore, TokenDetector, TokenEmbedder
 
-   emb = TokenEmbedder("bert-base-uncased", word_pooling="max")
+   emb = TokenEmbedder("bert-base-uncased")   # one vector per sub-word
    det = TokenDetector(TokenCore(), embedder=emb, aggregation="max")
    det.fit(train_words)                       # documents as lists of words
-   word_scores = det.token_scores(test_words)
+   word_scores = det.token_scores(test_words) # one score per word
    doc_scores = det.decision_function(test_words)
+
+The words of a document are only used to combine scores: the vectors are those of the
+running text, so grouping words differently (for example an annotated span "not fresh"
+given as one item) changes which sub-word scores are combined, not the scores themselves.
+
+.. note::
+
+   TokenCore as published :cite:`cao2026tokencore` pools the sub-word vectors of each item
+   first (element-wise maximum) and scores the pooled vector. To reproduce it, use
+   ``TokenEmbedder("bert-base-uncased", word_pooling="max")``. With that setting, an item
+   made of several words (an annotated span) is scored as one pooled vector, so the way the
+   annotation groups words influences the vectors.
 
 Evaluation
 ----------
@@ -46,9 +59,12 @@ FPR at 95 % TPR, at the document level and, for token-level detectors, at the to
 
    from pytextad.metrics import evaluate, format_results
 
-   X_train, _ = emb.transform(train_words, cache="train.npz")   # embed once, reuse
-   X_test, _ = emb.transform(test_words, cache="test.npz")
-   res = evaluate(TokenDetector(TokenCore()), X_train, X_test, token_labels=test_labels)
+   from pytextad import align_labels
+
+   X_train = emb.transform(train_words, cache="train.npz")   # embed once, reuse
+   X_test = emb.transform(test_words, cache="test.npz")
+   y_test = align_labels(test_labels, X_test[1])             # words cut off by truncation dropped
+   res = evaluate(TokenDetector(TokenCore()), X_train, X_test, token_labels=y_test)
    print(format_results({"TokenCore": res}))
 
 Input of each detector

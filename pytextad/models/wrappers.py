@@ -1,17 +1,18 @@
 """Turn any embedding detector (SIK, TokenCore, RSRAE, or your own) into a text detector.
 
-A "embedding detector" is any object with ``fit(X)`` and ``decision_function(X)`` working on a
+An "embedding detector" is any object with ``fit(X)`` and ``decision_function(X)`` working on a
 2-D array, higher scores meaning more anomalous.
 
 * ``DocumentDetector``: one vector per document (e.g. from ``SentenceEmbedder``).
-* ``TokenDetector``   : one vector per token; the detector is fitted on the tokens of all
-  training documents, scores every token, and token scores are aggregated into a
-  document score (the TokenCore "score aggregation" protocol).
+* ``TokenDetector``   : one vector per sub-word (or word); the detector is fitted on the
+  vectors of all training documents and scores every one; sub-word scores are combined
+  into word scores, and word scores into a document score.
 """
 
 import numpy as np
 
 from ..metrics import aggregate
+from ..utils.embeddings import words_from_subwords
 from ..utils.rng import preserve_rng, seed_everything
 from .base import BaseTextDetector
 
@@ -93,8 +94,16 @@ class DocumentDetector(BaseTextDetector):
 class TokenDetector(BaseTextDetector):
     """Use any anomaly detector for embeddings (e.g. TokenCore, or a PyOD detector :cite:`zhao2019pyod`) on token embeddings.
 
-    The detector is fitted on the tokens of all training documents together and scores
-    every token; a document's score aggregates its token scores.
+    The detector is fitted on the vectors of all training documents together and scores
+    every vector; a document's score aggregates its token scores.
+
+    With sub-word vectors (``TokenEmbedder`` without ``word_pooling``, the default) and
+    documents given as word lists, every sub-word is scored and the scores of a word's
+    sub-words are combined into the word's score (``subword_aggregation``). The vectors then
+    do not depend on how the words are grouped (for example an annotated span "not fresh"
+    given as one item); the grouping is only used to combine scores. With word vectors
+    (``TokenEmbedder(word_pooling="max")``, as in TokenCore :cite:`cao2026tokencore`) the
+    sub-word vectors of each item are pooled first and every item is scored once.
 
     Parameters
     ----------
@@ -102,8 +111,12 @@ class TokenDetector(BaseTextDetector):
         Unfitted detector with ``fit(X)`` and ``decision_function(X)``, for example
         ``pytextad.SIK()``.
     embedder : TokenEmbedder or None, default=None
-        If given, ``fit`` and ``decision_function`` accept raw texts; otherwise ``X`` is
-        a list of ``[n_tokens, dim]`` arrays, one per document.
+        If given, ``fit`` and ``decision_function`` accept raw texts or word lists.
+        Otherwise ``X`` is either the ``(embeddings, ids)`` pair returned by
+        ``TokenEmbedder.transform`` (scores are then combined per word with ``ids``), or a
+        list of ``[n_tokens, dim]`` arrays, one per document (one score per row).
+    subword_aggregation : {"max", "mean"}, default="max"
+        How the scores of a word's sub-words are combined into the word's score.
     aggregation : {"max", "mean", "topk"}, default="max"
         How token scores are combined into the document score.
     k : float, default=0.1
@@ -118,61 +131,73 @@ class TokenDetector(BaseTextDetector):
 
     Examples
     --------
-    >>> from pytextad import TokenCore, TokenDetector, TokenEmbedder
-    >>> emb = TokenEmbedder("bert-base-uncased", word_pooling="max")
-    >>> det = TokenDetector(TokenCore(), embedder=emb).fit(train_words)
-    >>> word_scores = det.token_scores(test_words)
+    >>> from pytextad import SIK, TokenDetector, TokenEmbedder
+    >>> det = TokenDetector(SIK(), embedder=TokenEmbedder("bert-base-uncased")).fit(train_words)
+    >>> word_scores = det.token_scores(test_words)      # one score per word
     """
     supports_token = True
 
-    def __init__(self, detector, embedder=None, aggregation="max", k=0.1, contamination=0.1,
-                 random_state=None, verbose=False):
+    def __init__(self, detector, embedder=None, subword_aggregation="max", aggregation="max", k=0.1,
+                 contamination=0.1, random_state=None, verbose=False):
         super().__init__(contamination, random_state, device="cpu", verbose=verbose)
         self.detector = detector
         self.embedder = embedder
+        self.subword_aggregation = subword_aggregation
         self.aggregation = aggregation
         self.k = k
 
-    def _tokens(self, X, with_layout=False):
-        """Token arrays, plus (when an embedder in word mode is used) where each row goes."""
-        layout = None
+    def _units(self, X):
+        """Vectors of every document, and for each document how its row scores become token
+        scores: None (one token per row) or (ids, n_words); n_words None keeps only the words
+        that have a vector."""
+        if isinstance(X, tuple) and len(X) == 2:            # (embeddings, ids) from TokenEmbedder
+            T, ids = X
+            return [_as_float(x) for x in T], [(list(i), None) for i in ids]
         if _is_text(X):
             if self.embedder is None:
                 raise ValueError("texts given but no embedder; pass a TokenEmbedder or token arrays")
             T, ids = self.embedder.transform(X)
-            if getattr(self.embedder, "word_pooling", None) is not None:
-                layout = [(len(doc), w) for doc, w in zip(X, ids)]
-        else:
-            T = [_as_float(x) for x in X]
-        return (T, layout) if with_layout else T
+            if isinstance(X[0], str):                        # running text: one score per sub-word
+                return T, [None] * len(T)
+            return T, [(list(i), len(doc)) for doc, i in zip(X, ids)]
+        return [_as_float(x) for x in X], [None] * len(X)
 
-    def _split(self, flat, lengths):
-        return np.split(np.asarray(flat, dtype=float), np.cumsum(lengths)[:-1]) if len(lengths) else []
+    def _token_scores(self, flat_scores, T, layout):
+        lengths = [len(t) for t in T]
+        rows = np.split(np.asarray(flat_scores, dtype=float), np.cumsum(lengths)[:-1]) if lengths else []
+        out = []
+        for s, lay in zip(rows, layout):
+            if lay is None:
+                out.append(s)
+                continue
+            ids, n_words = lay
+            if self.subword_aggregation not in ("max", "mean"):
+                raise ValueError("subword_aggregation must be 'max' or 'mean'")
+            w = words_from_subwords(s, ids, n_words, self.subword_aggregation)
+            if n_words is None:
+                w = w[sorted({i for i in ids if i is not None})]
+            out.append(w)
+        return out
 
     def fit(self, X, y=None):
         """Fit the detector on training documents ``X`` and return ``self``."""
-        T = self._tokens(X)
+        T, layout = self._units(X)
         flat = np.vstack(T)
         _seed(self)
         self.detector.fit(flat)
         with preserve_rng():
-            train_tokens = self._split(self.detector.decision_function(flat), [len(t) for t in T])
+            train_tokens = self._token_scores(self.detector.decision_function(flat), T, layout)
         return self._process_decision_scores(aggregate(train_tokens, self.aggregation, self.k))
 
     def token_scores(self, X):
-        """One array of token scores per document. With a word-level ``TokenEmbedder`` and word
-        lists as input, there is one score per input word; words without an embedding
-        (truncated) get NaN."""
-        T, layout = self._tokens(X, with_layout=True)
-        scores = self._split(self.detector.decision_function(np.vstack(T)), [len(t) for t in T])
-        if layout is None:
-            return scores
-        out = []
-        for s, (n_words, kept) in zip(scores, layout):
-            full = np.full(n_words, np.nan)
-            full[np.asarray(kept, dtype=int)] = s
-            out.append(full)
-        return out
+        """One array of token scores per document.
+
+        For word lists given with an embedder: one score per input word, NaN for words
+        without a vector (truncated). For an ``(embeddings, ids)`` pair: one score per word
+        that has a vector, in word order (see :func:`~pytextad.utils.embeddings.align_labels`).
+        Otherwise one score per row."""
+        T, layout = self._units(X)
+        return self._token_scores(self.detector.decision_function(np.vstack(T)), T, layout)
 
     def decision_function(self, X):
         """Anomaly score of each document in ``X`` (higher = more anomalous)."""
