@@ -5,10 +5,35 @@
 [![Tests](https://github.com/charles-cao/pytextad/actions/workflows/tests.yml/badge.svg)](https://github.com/charles-cao/pytextad/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-BSD--2--Clause-blue.svg)](LICENSE)
 
-**PyTextAD** is a Python library for detecting anomalies in text, at the document
-and at the token level. Every detector follows the PyOD interface
-(`fit`, `decision_function`, `predict`, `decision_scores_`, `labels_`), and every
-re-implemented method is checked numerically against its original code.
+**PyTextAD** is a Python library for detecting anomalies in text, both whole anomalous
+documents and the individual tokens that make them anomalous.
+
+* **23 detectors** with one interface, the one of [PyOD](https://github.com/yzhao062/pyod):
+  `fit`, `decision_function`, `predict`.
+* **Token-level detection**: any detector scores every token of a document, and token scores
+  are aggregated into document scores.
+* **Faithful implementations**: each detector is the authors' code, or is checked numerically
+  against it.
+* **Benchmark datasets** with a label for every word, and evaluation at the token and
+  document levels.
+
+Documentation: https://pytextad.readthedocs.io
+
+## Citing PyTextAD
+
+If you use PyTextAD, please cite it, together with the papers of the detectors you use
+(listed under [References](#references)):
+
+```bibtex
+@software{cao2026pytextad,
+  author = {Cao, Yang},
+  title  = {{PyTextAD}: Text Anomaly Detection in Python},
+  year   = {2026},
+  url    = {https://github.com/charles-cao/pytextad}
+}
+```
+
+If you use the built-in datasets, please also cite [1].
 
 ## Installation
 
@@ -16,53 +41,78 @@ re-implemented method is checked numerically against its original code.
 pip install pytextad
 ```
 
-From source:
-
-```bash
-git clone https://github.com/charles-cao/pytextad.git
-cd pytextad
-pip install -e ".[test]"
-```
-
-Requires Python >= 3.9, PyTorch >= 1.13 and transformers >= 4.30. Install the
-PyTorch build that matches your CUDA version first (https://pytorch.org).
+Requires Python 3.9 or later, PyTorch 1.13 or later and transformers 4.30 or later.
+Install the PyTorch build that matches your CUDA version first (https://pytorch.org).
 
 ## Quick start
 
 ```python
-from pytextad import CVDD, DATE, FATE, RSRAE, DocumentDetector, TokenDetector
-from pytextad import SentenceEmbedder, TokenEmbedder
+from pytextad import SIK, TokenDetector, TokenEmbedder
+from pytextad.datasets import load_dataset
 from pytextad.metrics import evaluate, format_results
-from pyod.models.knn import KNN
 
-# document level: any PyOD detector on sentence embeddings, or an end-to-end text detector
-scores = DocumentDetector(KNN(), embedder=SentenceEmbedder("bert-base-uncased")) \
-    .fit(train_texts).decision_function(test_texts)                     # higher = more anomalous
-scores = DATE().fit(train_texts).decision_function(test_texts)
+ds = load_dataset("restaurant_review")
+normal, anomalous = ds.normal_indices, ds.anomalous_indices
+train = ds.subset(normal[:500])                         # 500 normal reviews
+test = ds.subset(list(normal[500:]) + list(anomalous))  # the other reviews
 
-# token level: one embedding per word, any vector detector, token scores aggregated per document
-emb = TokenEmbedder("bert-base-cased", word_pooling="max")
-X_train, _ = emb.transform(train_words, cache="train.npz")               # lists of words in
-X_test, _ = emb.transform(test_words, cache="test.npz")
-res = evaluate(TokenDetector(KNN()), X_train, X_test, token_labels=test_labels, seeds=(0, 1, 2))
-print(format_results({"KNN": res}))           # token and document AUROC / AP / FPR95, mean ± std
+emb = TokenEmbedder("bert-base-uncased", word_pooling="max")      # one vector per word
+X_train, _ = emb.transform(train.tokens)
+X_test, kept = emb.transform(test.tokens)
+y_test = [labels[k] for labels, k in zip(test.token_labels, kept)]
+
+result = evaluate(TokenDetector(SIK()), X_train, X_test, token_labels=y_test)
+print(format_results({"SIK": result}))     # token and document AUROC, AP, FPR95
 ```
 
-A runnable example on AG News: `python examples/quickstart.py`.
+## Implemented algorithms
+
+**Text detectors** take text (or token embeddings) and are trained end to end.
+
+| Abbr | Algorithm | Year | Token scores | Ref |
+|---|---|:-:|:-:|:-:|
+| CVDD | Context Vector Data Description | 2019 | yes | [3] |
+| DATE | Detecting Anomalies in Text via Self-Supervision of Transformers | 2021 | yes | [4] |
+| FATE | Few-shot Anomaly Detection in Text with Deviation Learning | 2023 | no | [5] |
+
+**Vector detectors** take one vector per document or per token. Wrapped in
+`TokenDetector`, each of them scores every token.
+
+| Abbr | Algorithm | Year | Ref |
+|---|---|:-:|:-:|
+| NormalizingFlow | Planar normalizing flow | 2015 | [6] |
+| DAGMM | Deep Autoencoding Gaussian Mixture Model | 2018 | [7] |
+| GANomaly | Adversarially trained encoder-decoder-encoder | 2018 | [8] |
+| RSRAE | Robust Subspace Recovery AutoEncoder | 2020 | [9] |
+| GOAD | Classification-based anomaly detection with random transformations | 2020 | [10] |
+| DROCC | Distributionally Robust One-Class Classifier | 2020 | [11] |
+| ICL | Internal Contrastive Learning | 2022 | [12] |
+| SLAD | Scale Learning-based Anomaly Detection | 2023 | [13] |
+| DTE | Diffusion Time Estimation (categorical, inverse-gamma, Gaussian, non-parametric) | 2024 | [14] |
+| DDPM | Denoising diffusion model, reconstruction error | 2024 | [14] |
+| MCM | Masked Cell Modeling | 2024 | [15] |
+| DRL | Decomposed Representation Learning | 2025 | [16] |
+| DDAE | Diffusion-Scheduled Denoising Autoencoder | 2025 | [17] |
+| SIK | Simplified Isolation Kernel | 2025 | [2] |
+| ADERH | Ensemble of Random Pairs of Hyperspheres | 2025 | [18] |
+| TCCM | Time-Conditioned Contraction Matching | 2025 | [19] |
+| TokenCore | Nearest-neighbour memory bank of token embeddings | 2026 | [1] |
+
+**Wrappers** turn any PyOD detector into a text detector: `DocumentDetector` (one embedding
+per document) and `TokenDetector` (one embedding per token) [20].
 
 ## Datasets
 
-Benchmark datasets with a 0/1 label for every word, downloaded once from the Hugging Face Hub
-and checked against a checksum:
+Six datasets with a 0/1 label for every word, downloaded once from the Hugging Face Hub.
 
 ```python
 from pytextad.datasets import load_dataset
-ds = load_dataset("restaurant_review")     # see list_datasets() for all six
-ds.tokens, ds.token_labels, ds.labels       # words, word labels, document labels
+ds = load_dataset("restaurant_review")
+ds.tokens, ds.token_labels, ds.labels      # words, word labels, document labels
 ```
 
 | Dataset | Documents | Anomalous | Anomaly |
-|---|---|---|---|
+|---|--:|--:|---|
 | `sms_spam` | 4,518 | 393 | injected gibberish |
 | `restaurant_review` | 1,100 | 50 | negative sentiment |
 | `grammar_correction` | 300 | 30 | grammatical errors |
@@ -70,50 +120,49 @@ ds.tokens, ds.token_labels, ds.labels       # words, word labels, document label
 | `olid` | 650 | 30 | offensive words |
 | `restaurant_review2` | 520 | 25 | negative sentiment |
 
-The training/test split is up to you; `examples/token_level.py` runs PyOD detectors on them.
-Your own data: `TextADDataset.from_lists(tokens, token_labels)` or `load_local("file.jsonl")`.
-
-## Implemented methods
-
-| Method | Year | Input | Token scores | Reference |
-|---|---|---|---|---|
-| TokenCore | 2026 | token embeddings | via `TokenDetector` | Cao et al., *Towards Token-Level Text Anomaly Detection*, WWW 2026 |
-| SIK | 2025 | vectors | via `TokenDetector` | Cao et al., *Text Anomaly Detection with Simplified Isolation Kernel*, Findings of EMNLP 2025 |
-| ADERH | 2025 | vectors | via `TokenDetector` | Durani et al., *Anomaly Detection by an Ensemble of Random Pairs of Hyperspheres*, NeurIPS 2025 |
-| TCCM | 2025 | vectors | via `TokenDetector` | Li et al., *Scalable, Explainable and Provably Robust Anomaly Detection with One-Step Flow Matching*, NeurIPS 2025 |
-| DAGMM, GANomaly, DROCC, GOAD, ICL, MCM, SLAD, NormalizingFlow, DTE (4 variants), DDPM, DDAE, DRL | 2015 to 2025 | vectors | via `TokenDetector` | see the [References](https://pytextad.readthedocs.io/en/latest/references.html) page |
-| CVDD | 2019 | frozen token embeddings | yes | Ruff et al., *Self-Attentive, Multi-Context One-Class Classification for Unsupervised Anomaly Detection on Text*, ACL 2019 |
-| RSRAE | 2020 | vectors | via `TokenDetector` | Lai et al., *Robust Subspace Recovery Layer for Unsupervised Anomaly Detection*, ICLR 2020 |
-| DATE | 2021 | raw text | yes | Manolache et al., *DATE: Detecting Anomalies in Text via Self-Supervision of Transformers*, NAACL 2021 |
-| FATE | 2023 | raw text (+ few labelled anomalies) | no | Das et al., *Few-shot Anomaly Detection in Text with Deviation Learning*, ICONIP 2023 |
-
-Any vector detector (all of PyOD, or your own with `fit` / `decision_function`) works on text
-through `DocumentDetector` (sentence embeddings) and `TokenDetector` (token embeddings, token
-scores aggregated per document).
-
-Default hyperparameters are those of the official code. Each module's docstring
-lists where the official code and the paper disagree and which one we follow.
-
-## Faithfulness to the original implementations
-
-`tests/verification/` runs each original implementation next to ours with the same
-weights, inputs and random seeds and compares the results (DATE against the original
-transformers 3.0.2 code, RSRAE against the original TensorFlow code). All checks
-pass; see [tests/verification/README.md](tests/verification/README.md).
-
-## Running the tests
-
-```bash
-pytest                               # fast API tests, a few seconds
-PYTEXTAD_DEVICE=cuda pytest            # same, on GPU (PowerShell: $env:PYTEXTAD_DEVICE="cuda"; pytest)
-```
-
-## Citing
-
-Use "Cite this repository" on GitHub (from `CITATION.cff`), and cite the paper of each
-detector you use; the full list is on the [References](https://pytextad.readthedocs.io/en/latest/references.html) page.
-
 ## License
 
-BSD 2-Clause. Third-party notices for the original implementations are in
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+BSD 2-Clause, except for some third-party code under its own licence (CC BY-SA 4.0, and a
+research-only licence for GOAD); see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+## References
+
+[1] Y. Cao, B. Yu, S. Yang, M. Liu, Y. Yang. Towards Token-Level Text Anomaly Detection. *The ACM Web Conference (WWW)*, 2026. [doi:10.1145/3774904.3792952](https://doi.org/10.1145/3774904.3792952)
+
+[2] Y. Cao, S. Yang, Y. Yang, L. Qi, M. Liu. Text Anomaly Detection with Simplified Isolation Kernel. *Findings of EMNLP*, 2025. [doi:10.18653/v1/2025.findings-emnlp.680](https://doi.org/10.18653/v1/2025.findings-emnlp.680)
+
+[3] L. Ruff, Y. Zemlyanskiy, R. Vandermeulen, T. Schnake, M. Kloft. Self-Attentive, Multi-Context One-Class Classification for Unsupervised Anomaly Detection on Text. *ACL*, 2019.
+
+[4] A. Manolache, F. Brad, E. Burceanu. DATE: Detecting Anomalies in Text via Self-Supervision of Transformers. *NAACL*, 2021.
+
+[5] A. S. Das, A. Ajay, S. Saha, M. Bhuyan. Few-shot Anomaly Detection in Text with Deviation Learning. *ICONIP*, 2023.
+
+[6] D. J. Rezende, S. Mohamed. Variational Inference with Normalizing Flows. *ICML*, 2015.
+
+[7] B. Zong, Q. Song, M. R. Min, W. Cheng, C. Lumezanu, D. Cho, H. Chen. Deep Autoencoding Gaussian Mixture Model for Unsupervised Anomaly Detection. *ICLR*, 2018.
+
+[8] S. Akcay, A. Atapour-Abarghouei, T. P. Breckon. GANomaly: Semi-Supervised Anomaly Detection via Adversarial Training. *ACCV*, 2018.
+
+[9] C.-H. Lai, D. Zou, G. Lerman. Robust Subspace Recovery Layer for Unsupervised Anomaly Detection. *ICLR*, 2020.
+
+[10] L. Bergman, Y. Hoshen. Classification-Based Anomaly Detection for General Data. *ICLR*, 2020.
+
+[11] S. Goyal, A. Raghunathan, M. Jain, H. V. Simhadri, P. Jain. DROCC: Deep Robust One-Class Classification. *ICML*, 2020.
+
+[12] T. Shenkar, L. Wolf. Anomaly Detection for Tabular Data with Internal Contrastive Learning. *ICLR*, 2022.
+
+[13] H. Xu, Y. Wang, J. Wei, S. Jian, Y. Li, N. Liu. Fascinating Supervisory Signals and Where to Find Them: Deep Anomaly Detection with Scale Learning. *ICML*, 2023.
+
+[14] V. Livernoche, V. Jain, Y. Hezaveh, S. Ravanbakhsh. On Diffusion Modeling for Anomaly Detection. *ICLR*, 2024. [arXiv:2305.18593](https://arxiv.org/abs/2305.18593)
+
+[15] J. Yin, Y. Qiao, Z. Zhou, X. Wang, J. Yang. MCM: Masked Cell Modeling for Anomaly Detection in Tabular Data. *ICLR*, 2024.
+
+[16] H. Ye, H. Zhao, W. Fan, M. Zhou, D. Guo, Y. Chang. DRL: Decomposed Representation Learning for Tabular Anomaly Detection. *ICLR*, 2025.
+
+[17] T. Sattarov, M. Schreyer, D. Borth. Diffusion-Scheduled Denoising Autoencoders for Anomaly Detection in Tabular Data. *KDD*, 2025. [arXiv:2508.00758](https://arxiv.org/abs/2508.00758)
+
+[18] W. Durani, C. Leiber, K. Durani, C. Plant, C. Böhm. Anomaly Detection by an Ensemble of Random Pairs of Hyperspheres. *NeurIPS*, 2025.
+
+[19] Z. Li, Q. Huang, Y. Zhu, L. Yang, M. M. Amiri, N. van Stein, M. van Leeuwen. Scalable, Explainable and Provably Robust Anomaly Detection with One-Step Flow Matching. *NeurIPS*, 2025. [arXiv:2510.18328](https://arxiv.org/abs/2510.18328)
+
+[20] Y. Zhao, Z. Nasrullah, Z. Li. PyOD: A Python Toolbox for Scalable Outlier Detection. *JMLR*, 20(96):1-7, 2019.

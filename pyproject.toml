@@ -27,7 +27,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest>=7", "pyod>=2"]
+test = ["pytest>=7", "pyod>=2", "pandas", "matplotlib"]
 docs = ["sphinx>=7", "furo", "myst-parser"]
 
 [project.urls]

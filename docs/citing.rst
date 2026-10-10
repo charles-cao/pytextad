@@ -1,8 +1,16 @@
 Citing PyTextAD
 ===============
 
-If you use PyTextAD, please cite the software; GitHub shows the citation under
-"Cite this repository" on https://github.com/charles-cao/pytextad (from ``CITATION.cff``).
+If you use PyTextAD, please cite it, together with the papers of the detectors you use
+(see :doc:`references`):
 
-Please also cite the paper of every detector you use (see :doc:`references`), and, for the
-built-in datasets, the paper they come from :cite:`cao2026tokencore`.
+.. code-block:: bibtex
+
+   @software{cao2026pytextad,
+     author = {Cao, Yang},
+     title  = {{PyTextAD}: Text Anomaly Detection in Python},
+     year   = {2026},
+     url    = {https://github.com/charles-cao/pytextad}
+   }
+
+If you use the built-in datasets, please also cite :cite:`cao2026tokencore`.

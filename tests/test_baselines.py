@@ -82,7 +82,9 @@ FILE = {"dte_inverse_gamma": "dte", "dte_gaussian": "dte"}
 
 @pytest.mark.parametrize("name", sorted(CASES))
 def test_same_scores_as_the_benchmark_copy(name):
-    pytest.importorskip("matplotlib") if name == "dte_nonparametric" else None
+    needs = {"dte_nonparametric": "matplotlib", "icl": "pandas"}   # imported by the original code
+    if name in needs:
+        pytest.importorskip(needs[name])
     make_ref, fixes, fit, make_ours = CASES[name]
     mod = _original(FILE.get(name, name), fixes)
     X_train, X_test = _data(1)
