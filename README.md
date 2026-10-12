@@ -122,6 +122,11 @@ word scores.
 PyOD [20], into a text detector: `DocumentDetector` (one embedding per document) and
 `TokenDetector` (one embedding per token).
 
+```python
+from pyod.models.iforest import IForest      # pip install pyod
+result = evaluate(TokenDetector(IForest()), X_train, X_test, token_labels=y_test)
+```
+
 ## Datasets
 
 Six datasets with a 0/1 label for every word, downloaded once from the Hugging Face Hub.

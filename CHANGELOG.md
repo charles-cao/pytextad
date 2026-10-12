@@ -5,6 +5,7 @@
   Quick Start); "Using your own embeddings" section, saying when `DocumentDetector` is needed
   (embedding detectors take document vectors directly); training on normal documents only in
   the home page example.
+- How to use detectors from other libraries (PyOD) in the Quick Start and README.
 - CHANGELOG: everything shipped in 0.3.0 listed under 0.3.0.
 
 ## 0.3.0

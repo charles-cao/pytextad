@@ -92,6 +92,35 @@ document, and aggregates them into document scores.
 Each row is scored as one token. To score sub-words and combine their scores per word,
 pass the ``(embeddings, ids)`` pair returned by ``TokenEmbedder.transform`` instead.
 
+Detectors from other libraries
+------------------------------
+
+Any object with ``fit(X)`` and ``decision_function(X)`` on a 2-D array, higher scores
+meaning more anomalous, can be wrapped. This includes the detectors of PyOD
+:cite:`zhao2019pyod` (``pip install pyod``).
+
+.. code-block:: python
+
+   from pyod.models.ecod import ECOD
+   from pyod.models.iforest import IForest
+   from pytextad import DocumentDetector, TokenDetector, TokenEmbedder
+
+   # token level
+   det = TokenDetector(IForest(), embedder=TokenEmbedder("bert-base-uncased"))
+   det.fit(train_words)
+   word_scores = det.token_scores(test_words)
+
+   # document level, with document vectors: use the detector directly
+   doc_scores = ECOD().fit(X_train).decision_function(X_test)
+
+   # in evaluate, wrap it so that it is fitted and scored like the others
+   res = evaluate(DocumentDetector(ECOD()), X_train, X_test, doc_labels=y_test)
+
+:func:`~pytextad.metrics.evaluate` sets ``random_state`` of the wrapped detector to each
+seed, so randomised detectors such as ``IForest`` give different results per seed.
+Neighbour-based detectors (``LOF``, ``KNN``) can be slow on the tens of thousands of token
+vectors of a dataset.
+
 Evaluation
 ----------
 
