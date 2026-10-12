@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.0
 - `TokenDetector` scores every sub-word and combines the scores of a word's sub-words into
   the word's score (`subword_aggregation="max" | "mean"`) when used with sub-word vectors
   (`TokenEmbedder` without `word_pooling`, now used in all examples). The vectors no longer
@@ -25,8 +25,6 @@
 - `DocumentDetector` and `TokenDetector` keep float64 input vectors as float64 (they were
   rounded to float32, which changed scores slightly compared with running the detector directly).
 - Documentation: references with citation labels linking to a References page; `CITATION.cff`.
-
-## 0.3.0
 - `pytextad.datasets`: `load_dataset` for six datasets with word-level anomaly labels -
   `sms_spam`, `restaurant_review`, `grammar_correction` (Cao et al., WWW 2026), `hate_speech`,
   `olid`, `restaurant_review2` (CA-PTD experiments) - downloaded from the Hugging Face Hub and
