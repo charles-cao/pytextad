@@ -42,6 +42,11 @@ def _seed(wrapper):
 class DocumentDetector(BaseTextDetector):
     """Use any anomaly detector for embeddings (e.g. SIK, or a PyOD detector :cite:`zhao2019pyod`) on document embeddings.
 
+    With document vectors already computed, the embedding detectors of PyTextAD can be used
+    directly (``SIK().fit(X).decision_function(X_test)``). This wrapper is useful to embed
+    texts on the fly (``embedder``), or to give a detector that only has ``fit`` and
+    ``decision_function`` a ``predict`` method, a ``threshold_`` and seeding.
+
     Parameters
     ----------
     detector : object

@@ -49,6 +49,49 @@ given as one item) changes which sub-word scores are combined, not the scores th
    made of several words (an annotated span) is scored as one pooled vector, so the way the
    annotation groups words influences the vectors.
 
+Using your own embeddings
+-------------------------
+
+Vectors you have computed yourself (any model, TF-IDF, ...) can be used without an
+embedder.
+
+**Document level.** Every embedding detector takes a ``[n_documents, dim]`` array
+directly; no wrapper is needed.
+
+.. code-block:: python
+
+   import numpy as np
+   from pytextad import SIK
+
+   X_train = np.load("train_doc_vectors.npy")          # [n_train_documents, dim]
+   X_test = np.load("test_doc_vectors.npy")
+   det = SIK().fit(X_train)
+   doc_scores = det.decision_function(X_test)          # higher = more anomalous
+   doc_labels = det.predict(X_test)                    # 0 / 1
+
+:class:`~pytextad.models.wrappers.DocumentDetector` is only needed
+
+* to embed texts on the fly (``embedder=SentenceEmbedder(...)``), or
+* to give a detector that only has ``fit`` and ``decision_function`` (for example your own
+  class) a ``predict`` method, a ``threshold_`` and seeding, so that it can be used like
+  the others, for example in :func:`~pytextad.metrics.evaluate`.
+
+**Token level.** :class:`~pytextad.models.wrappers.TokenDetector` is needed: it fits the
+detector on the tokens of all training documents together, splits the scores back per
+document, and aggregates them into document scores.
+
+.. code-block:: python
+
+   from pytextad import TokenCore, TokenDetector
+
+   # one [n_tokens, dim] array per document
+   det = TokenDetector(TokenCore()).fit(train_token_vectors)
+   token_scores = det.token_scores(test_token_vectors)   # one score array per document
+   doc_scores = det.decision_function(test_token_vectors)
+
+Each row is scored as one token. To score sub-words and combine their scores per word,
+pass the ``(embeddings, ids)`` pair returned by ``TokenEmbedder.transform`` instead.
+
 Evaluation
 ----------
 

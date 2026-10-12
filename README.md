@@ -47,14 +47,32 @@ Install the PyTorch build that matches your CUDA version first (https://pytorch.
 ## Quick start
 
 ```python
-from pytextad import SIK, TokenDetector, TokenEmbedder, align_labels
 from pytextad.datasets import load_dataset
-from pytextad.metrics import evaluate, format_results
 
 ds = load_dataset("restaurant_review")
 normal, anomalous = ds.normal_indices, ds.anomalous_indices
 train = ds.subset(normal[:500])                         # 500 normal reviews
 test = ds.subset(list(normal[500:]) + list(anomalous))  # the other reviews
+```
+
+**Document level**: one vector per document.
+
+```python
+from pytextad import SIK, DocumentDetector, SentenceEmbedder
+
+det = DocumentDetector(SIK(), embedder=SentenceEmbedder("bert-base-uncased"))
+det.fit(train.texts)
+doc_scores = det.decision_function(test.texts)          # higher = more anomalous
+
+# with document vectors you already have ([n_documents, dim] arrays), use the detector directly
+doc_scores = SIK().fit(X_train_docs).decision_function(X_test_docs)
+```
+
+**Token level**: one score per word, evaluated at the token and document levels.
+
+```python
+from pytextad import SIK, TokenDetector, TokenEmbedder, align_labels
+from pytextad.metrics import evaluate, format_results
 
 emb = TokenEmbedder("bert-base-uncased")              # one vector per sub-word
 X_train = emb.transform(train.tokens)                 # (vectors, word index of each sub-word)
