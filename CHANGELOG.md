@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.1
+- Documentation: document-level examples next to the token-level ones (README, home page,
+  Quick Start); "Using your own embeddings" section, saying when `DocumentDetector` is needed
+  (embedding detectors take document vectors directly); training on normal documents only in
+  the home page example.
+- CHANGELOG: everything shipped in 0.3.0 listed under 0.3.0.
+
 ## 0.3.0
 - `TokenDetector` scores every sub-word and combines the scores of a word's sub-words into
   the word's score (`subword_aggregation="max" | "mean"`) when used with sub-word vectors
