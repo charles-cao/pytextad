@@ -143,13 +143,16 @@ def evaluate(detector, X_train, X_test, doc_labels=None, token_labels=None, y_tr
     doc_labels : array-like, optional
         One 0/1 label per test document; derived from ``token_labels`` if omitted.
     token_labels : list of arrays, optional
-        One 0/1 array per test document, aligned with what ``token_scores`` returns
-        (words for DATE and word-level embeddings, the embedded units otherwise).
+        One 0/1 array per test document, aligned with what ``token_scores`` returns: one
+        label per word when ``X_test`` is word lists (words cut off by truncation get NaN
+        scores and are ignored); for the ``(embeddings, ids)`` pair of ``TokenEmbedder``,
+        the labels of the words that have a vector (:func:`~pytextad.utils.embeddings.align_labels`);
+        for plain arrays, one label per row.
     y_train : array-like, optional
         Passed to ``fit``; only semi-supervised detectors (FATE) use it.
-    seeds : tuple of int
-        Random seeds, one fit per seed.
-    aggregations : tuple of str
+    seeds : tuple of int, default=(0, 1, 2)
+        Random seeds, one fit per seed. The data split is not changed between seeds.
+    aggregations : tuple of str, default=("max", "mean")
         For token-level detectors, document scores are also computed by aggregating token
         scores in each of these ways ("max", "mean", "topk").
 
