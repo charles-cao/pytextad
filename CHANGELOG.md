@@ -1,11 +1,6 @@
 # Changelog
 
-## 0.3.1
-- Documentation: document-level examples next to the token-level ones (README, home page,
-  Quick Start); "Using your own embeddings" section, saying when `DocumentDetector` is needed
-  (embedding detectors take document vectors directly); training on normal documents only in
-  the home page example.
-- How to use detectors from other libraries (PyOD) in the Quick Start and README.
+## 0.3.2
 - CVDD, DATE and FATE raise a clear "not fitted" error when used before `fit` (they raised
   an `AttributeError`).
 - Tests: PyTextAD's own code is fully covered (third-party code in `_vendor` is checked by
@@ -14,6 +9,14 @@
   (Python 3.9, torch 1.13, transformers 4.30).
 - `CONTRIBUTING.md` (also in the documentation), code of conduct, issue and pull request
   templates.
+- How to use detectors from other libraries (PyOD) in the Quick Start and README.
+- Up-to-date description of the `evaluate` parameters.
+
+## 0.3.1
+- Documentation: document-level examples next to the token-level ones (README, home page,
+  Quick Start); "Using your own embeddings" section, saying when `DocumentDetector` is needed
+  (embedding detectors take document vectors directly); training on normal documents only in
+  the home page example.
 - CHANGELOG: everything shipped in 0.3.0 listed under 0.3.0.
 
 ## 0.3.0
@@ -63,7 +66,7 @@
   `evaluate` (reproduces the TokenCore benchmark numbers exactly).
 - `supports_token` flag on every detector; `cache_dir` for DATE and FATE.
 
-## 0.1.0 (unreleased)
+## 0.1.0
 - First release: CVDD, DATE, FATE, RSRAE with a common detector API.
 - Frozen token-embedding extraction (`TokenEmbedder`).
 - Numerical equivalence checks against the four original implementations (`tests/verification`).
