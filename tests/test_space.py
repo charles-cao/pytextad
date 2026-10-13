@@ -30,6 +30,24 @@ def test_demo_detect(tiny_bert, monkeypatch):
     assert summary.endswith("Most anomalous words: player, score.") or summary.endswith("score, player.")
     det, ref_docs, lo, hi = app.reference("Restaurant reviews")
     assert len(ref_docs) == 100 and np.isfinite(ref_docs).all() and lo < hi
+    assert app.doc_score([0.3] * 12 + [0.8] * 3) == pytest.approx(0.8)   # top 20%: 3 of 15 words
+    assert app.doc_score([0.5, np.nan]) == 0.5 and np.isnan(app.doc_score([np.nan]))
+
+
+def test_demo_small_dataset(tiny_bert, monkeypatch):
+    """A dataset with fewer normal documents than N_REF + 100 (grammar_correction has 270)
+    keeps a third of them for the reference."""
+    pytest.importorskip("gradio")
+    path, _ = tiny_bert
+    monkeypatch.setenv("PYTEXTAD_DEMO_MODEL", path)
+    monkeypatch.setattr(datasets, "load_dataset", lambda name: _toy(0, n=40, n_anom=4))
+    spec = importlib.util.spec_from_file_location("app_small", APP)
+    app = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(app)                     # N_REF = 300 > 36 normal documents
+    _, ref_docs, lo, hi = app.reference("English sentences")
+    assert len(ref_docs) == 12 and lo < hi
+    html, summary = app.detect("He has lived here .", "English sentences")
+    assert html.count("<span") == 5 and summary.startswith("**More anomalous than")
 
 
 def test_demo_on_zerogpu_hardware(tiny_bert, monkeypatch):

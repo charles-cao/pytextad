@@ -33,6 +33,7 @@ from pytextad import datasets
 MODEL = os.environ.get("PYTEXTAD_DEMO_MODEL", "bert-base-uncased")
 N_REF = int(os.environ.get("PYTEXTAD_DEMO_N_REF", "300"))
 N_HELD_OUT = 100
+TOP_SHARE = 0.2                         # share of the words that make the text score
 WORD = re.compile(r"\w+|[^\w\s]")      # the word segmentation of the datasets' normal documents
 
 DOMAINS = {
@@ -56,22 +57,33 @@ def embedder():
     return TokenEmbedder(MODEL, device="cpu")
 
 
+def doc_score(word_scores):
+    """Mean of the top TOP_SHARE of a text's word scores (at least one word): a text with a
+    few anomalous words among many normal ones still stands out, unlike with the mean."""
+    s = np.sort(np.asarray(word_scores, dtype=float)[np.isfinite(word_scores)])[::-1]
+    return float(s[:max(1, int(np.ceil(TOP_SHARE * len(s))))].mean()) if len(s) else np.nan
+
+
 @lru_cache(maxsize=None)
 def reference(domain):
     """Detector fitted on normal documents of the domain, and the scores of held-out normal
-    documents (TokenCore scores its own training words 0, so they cannot serve as reference)."""
+    documents (TokenCore scores its own training words 0, so they cannot serve as reference).
+    A dataset with fewer than N_REF + 100 normal documents keeps a third of them for the
+    reference (grammar_correction has 270: 180 for fitting, 90 for the reference)."""
     ds = datasets.load_dataset(DOMAINS[domain][0])
     normal = np.random.RandomState(0).permutation(ds.normal_indices)
-    fit_docs = [ds.tokens[i] for i in normal[:N_REF]]
-    held_out = [ds.tokens[i] for i in normal[N_REF:N_REF + N_HELD_OUT]]
-    det = TokenDetector(TokenCore(), embedder=embedder(), aggregation="mean").fit(fit_docs)
+    n_held = min(N_HELD_OUT, max(len(normal) - N_REF, len(normal) // 3))
+    n_fit = min(N_REF, len(normal) - n_held)
+    fit_docs = [ds.tokens[i] for i in normal[:n_fit]]
+    held_out = [ds.tokens[i] for i in normal[n_fit:n_fit + n_held]]
+    det = TokenDetector(TokenCore(), embedder=embedder()).fit(fit_docs)
     word_scores = det.token_scores(held_out)
-    doc_scores = np.array([np.nanmean(s) for s in word_scores])
+    doc_scores = np.array([doc_score(s) for s in word_scores])
     words = np.concatenate(word_scores)
     words = words[np.isfinite(words)]
-    # colour scale: words as typical as the median normal word are white,
-    # words beyond the 99.5th percentile of normal words get the full colour
-    return det, doc_scores, float(np.percentile(words, 50)), float(np.percentile(words, 99.5))
+    # colour scale: the 90% most typical normal words stay white, words beyond the
+    # 99.5th percentile of normal words get the full colour
+    return det, doc_scores, float(np.percentile(words, 90)), float(np.percentile(words, 99.5))
 
 
 def detect(text, domain):
@@ -81,7 +93,7 @@ def detect(text, domain):
         return "", "Type or paste a text."
     det, ref_docs, lo, hi = reference(domain)
     scores = det.token_scores([words])[0]
-    doc = float(np.nanmean(scores))
+    doc = doc_score(scores)
     pct = 100.0 * float(np.mean(ref_docs < doc))
     ranked = sorted(zip(np.nan_to_num(scores, nan=-np.inf), words), reverse=True)
     top = [w for _, w in ranked if any(c.isalnum() for c in w)][:3]          # skip punctuation
