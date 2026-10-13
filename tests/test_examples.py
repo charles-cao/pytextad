@@ -37,7 +37,7 @@ def test_benchmark_example(tiny_bert, tmp_path, monkeypatch):
     bench = _load("benchmark")
     path, _ = tiny_bert
     toys = {"restaurant_review": _toy(0), "grammar_correction": _toy(1)}
-    monkeypatch.setattr(bench, "load_dataset", lambda name: toys[name])
+    monkeypatch.setattr(bench, "load_dataset", lambda name, retokenize=False: toys[name])
     out = tmp_path / "out"
     bench.main(["--datasets", "restaurant_review", "grammar_correction",
                 "--detectors", "TokenCore", "SIK", "pyod:ECOD", "NoSuchDetector",
@@ -75,6 +75,27 @@ def test_benchmark_split_is_the_paper_split():
     assert len(train) + len(test) == len(ds) and test.labels.sum() == ds.labels.sum()
 
 
+def test_benchmark_whole_dataset_and_retokenize(tiny_bert, tmp_path, monkeypatch):
+    bench = _load("benchmark")
+    ds = _toy(0)
+    train, test = bench.split(ds, 0, 42)
+    assert train is ds and test is ds                     # contaminated setting
+    path, _ = tiny_bert
+    calls = []
+
+    def load(name, retokenize=False):
+        calls.append(retokenize)
+        return _toy(0).retokenize() if retokenize else _toy(0)
+    monkeypatch.setattr(bench, "load_dataset", load)
+    bench.main(["--datasets", "restaurant_review", "--detectors", "TokenCore", "--model", path,
+                "--seeds", "0", "--train_ratio", "0", "--retokenize", "--device", DEV,
+                "--cache", str(tmp_path / "cache"), "--out", str(tmp_path / "out")])
+    assert calls == [True]
+    cached = os.listdir(tmp_path / "cache" / os.path.basename(os.path.normpath(path)))
+    assert cached and all(f.startswith("restaurant_review_rt_r0.0") for f in cached)
+    assert "TokenCore" in (tmp_path / "out" / "results.md").read_text(encoding="utf-8")
+
+
 def test_benchmark_detector_specifications():
     bench = _load("benchmark")
     assert bench.parse_spec("SIK") == ("SIK", {})
@@ -85,3 +106,21 @@ def test_benchmark_detector_specifications():
     for bad in ["SIK(8)", "SIK(x=open('f'))", "SIK(", "__import__('os').system('ls')"]:
         with pytest.raises(ValueError, match="cannot read detector"):
             bench.parse_spec(bad)
+
+
+def test_tutorial_notebook_runs(tiny_bert, monkeypatch):
+    """Every code cell of examples/tutorial.ipynb runs (tiny model and toy data instead of
+    BERT and the Hub dataset)."""
+    pytest.importorskip("pyod")
+    import json
+    from pytextad import datasets
+    path, _ = tiny_bert
+    monkeypatch.setattr(datasets, "load_dataset", lambda name: _toy(0, n=60, n_anom=12))
+    nb = json.load(open(os.path.join(EXAMPLES, "tutorial.ipynb"), encoding="utf-8"))
+    ns = {}
+    cells = ["".join(c["source"]) for c in nb["cells"] if c["cell_type"] == "code"]
+    assert cells[0].startswith("!pip install")
+    for src in cells[1:]:
+        exec(compile(src.replace("bert-base-uncased", path), "tutorial", "exec"), ns)
+    assert ns["highlight"] is not None and len(ns["docs"]) == 5
+    assert set(ns["results"]) == {"TokenCore", "SIK", "IForest", "ECOD"}

@@ -1,7 +1,11 @@
 Examples
 ========
 
-The ``examples`` folder of the repository has three scripts.
+A tutorial notebook walks through a dataset, token- and document-level detection, the
+highlighted scores and a comparison of detectors; it runs in Google Colab without installing
+anything: `Open in Colab <https://colab.research.google.com/github/charles-cao/pytextad/blob/main/examples/tutorial.ipynb>`_ (``examples/tutorial.ipynb``).
+
+The ``examples`` folder of the repository also has three scripts.
 
 ``examples/quickstart.py`` runs CVDD, DATE, FATE and RSRAE on a small AG News subset
 (one class as normal data, the others as anomalies):
@@ -34,7 +38,9 @@ writes the results as tables:
        --model bert-base-uncased
 
 For every dataset, half of the normal documents are used for training and all other
-documents for testing (``--train_ratio``, ``--split_seed``). Every document is embedded once,
+documents for testing (``--train_ratio``, ``--split_seed``); ``--train_ratio 0`` trains and
+tests on the whole dataset, and ``--retokenize`` splits the words of every document with one
+rule, as in ``examples/token_level.py``. Every document is embedded once,
 and the embeddings are cached in ``--cache``, so that adding a detector later does not embed
 the data again. Every detector is then evaluated over the seeds given by ``--seeds``.
 

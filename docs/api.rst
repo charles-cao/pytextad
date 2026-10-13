@@ -73,6 +73,17 @@ Base classes
    base.BaseTextDetector
    embedding.BaseEmbeddingDetector
 
+Visualisation
+-------------
+
+.. currentmodule:: pytextad.visualize
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+
+   highlight
+
 Embeddings
 ----------
 

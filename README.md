@@ -12,6 +12,7 @@
 [![Tests](https://github.com/charles-cao/pytextad/actions/workflows/tests.yml/badge.svg)](https://github.com/charles-cao/pytextad/actions/workflows/tests.yml)
 [![Coverage](https://codecov.io/gh/charles-cao/pytextad/graph/badge.svg)](https://codecov.io/gh/charles-cao/pytextad)
 [![License](https://img.shields.io/badge/license-BSD--2--Clause-blue.svg)](LICENSE)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/charles-cao/pytextad/blob/main/examples/tutorial.ipynb)
 
 **PyTextAD** is a Python library for detecting anomalies in text, both whole anomalous
 documents and the individual tokens that make them anomalous.

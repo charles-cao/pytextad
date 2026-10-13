@@ -49,6 +49,26 @@ given as one item) changes which sub-word scores are combined, not the scores th
    made of several words (an annotated span) is scored as one pooled vector, so the way the
    annotation groups words influences the vectors.
 
+Seeing the token scores
+-----------------------
+
+:func:`~pytextad.visualize.highlight` colours every word by its score; in Jupyter the result
+is shown directly, and ``.save("scores.html")`` writes a web page. With ``labels``, the words
+labelled anomalous are underlined, to compare the scores with the ground truth.
+
+.. code-block:: python
+
+   from pytextad import highlight
+
+   docs = test_words[:5]
+   highlight(docs, det.token_scores(docs), labels=test_labels[:5])
+
+.. image:: _static/highlight-example.png
+   :alt: Words coloured by anomaly score
+   :width: 560
+
+(Illustration with made-up scores.)
+
 Using your own embeddings
 -------------------------
 

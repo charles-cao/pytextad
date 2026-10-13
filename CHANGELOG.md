@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.3
+- `highlight`: shows every word coloured by its anomaly score (in Jupyter, or saved as a web
+  page), with the true anomalous words underlined.
+- Tutorial notebook (`examples/tutorial.ipynb`) with an "Open in Colab" badge.
+- `space/`: source of an online demo (Hugging Face Space) that colours the words of a typed
+  text by anomaly score.
+- `examples/benchmark.py`: `--train_ratio 0` (train and test on the whole dataset; it failed
+  before) and `--retokenize`, as in `examples/token_level.py`.
+
 ## 0.3.2
 - CVDD, DATE and FATE raise a clear "not fitted" error when used before `fit` (they raised
   an `AttributeError`).
