@@ -11,6 +11,7 @@
   templates.
 - How to use detectors from other libraries (PyOD) in the Quick Start and README.
 - Up-to-date description of the `evaluate` parameters.
+- Installation: how to upgrade and check the installed version; mirror example for `HF_ENDPOINT`.
 
 ## 0.3.1
 - Documentation: document-level examples next to the token-level ones (README, home page,
@@ -66,7 +67,7 @@
   `evaluate` (reproduces the TokenCore benchmark numbers exactly).
 - `supports_token` flag on every detector; `cache_dir` for DATE and FATE.
 
-## 0.1.0
+## 0.1.0 (unreleased)
 - First release: CVDD, DATE, FATE, RSRAE with a common detector API.
 - Frozen token-embedding extraction (`TokenEmbedder`).
 - Numerical equivalence checks against the four original implementations (`tests/verification`).

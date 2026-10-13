@@ -5,6 +5,15 @@ Installation
 
    pip install pytextad
 
+To upgrade to the latest release, and to see the installed version:
+
+.. code-block:: bash
+
+   pip install -U pytextad
+   python -c "import pytextad; print(pytextad.__version__)"
+
+What changed in each release is listed in the :doc:`changelog`.
+
 PyTextAD requires Python 3.9 or later, PyTorch 1.13 or later and transformers 4.30 or
 later. Install the PyTorch build that matches your CUDA version first, following
 https://pytorch.org.
@@ -27,4 +36,5 @@ Every class that loads a Hugging Face model takes ``cache_dir``, the folder used
 
    export HF_HUB_OFFLINE=1            # PowerShell: $env:HF_HUB_OFFLINE = "1"
 
-Set ``HF_ENDPOINT`` to download models and datasets through a mirror.
+Set ``HF_ENDPOINT`` to download models and datasets through a mirror, for example
+``export HF_ENDPOINT=https://hf-mirror.com`` (PowerShell: ``$env:HF_ENDPOINT = "https://hf-mirror.com"``).

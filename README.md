@@ -39,7 +39,8 @@ If you use the built-in datasets, please also cite *Towards Token-Level Text Ano
 ## Installation
 
 ```bash
-pip install pytextad
+pip install pytextad        # install
+pip install -U pytextad     # upgrade to the latest release
 ```
 
 Requires Python 3.9 or later, PyTorch 1.13 or later and transformers 4.30 or later.
