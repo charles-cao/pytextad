@@ -223,6 +223,7 @@ class FATE(BaseTextDetector):
     @torch.no_grad()
     def decision_function(self, X: List[str], batch_size=16):
         """Anomaly score of each document in ``X`` (higher = more anomalous)."""
+        self._check_fitted("net_")
         self.net_.eval()
         X = list(X)
         out = []

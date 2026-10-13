@@ -51,7 +51,7 @@ class BaseTextDetector(abc.ABC):
     def token_scores(self, X):
         """One array of token anomaly scores per document (token-level detectors only)."""
         raise NotImplementedError(f"{type(self).__name__} is a document-level detector; "
-                                  "use TokenDetector to score tokens with a embedding detector")
+                                  "use TokenDetector to score tokens with an embedding detector")
 
     # ------------------------------------------------------------------ shared
     def _set_seed(self):
@@ -60,7 +60,7 @@ class BaseTextDetector(abc.ABC):
         random.seed(self.random_state)
         np.random.seed(self.random_state)
         torch.manual_seed(self.random_state)
-        if torch.cuda.is_available():
+        if torch.cuda.is_available():  # pragma: no cover  (GPU only)
             torch.cuda.manual_seed_all(self.random_state)
 
     def _process_decision_scores(self, scores):
@@ -78,8 +78,8 @@ class BaseTextDetector(abc.ABC):
         """Fit on ``X`` and return the labels of the training data (``labels_``)."""
         return self.fit(X, y).labels_
 
-    def _check_fitted(self):
-        if not hasattr(self, "decision_scores_"):
+    def _check_fitted(self, attr="decision_scores_"):
+        if not hasattr(self, attr):
             raise RuntimeError(f"{type(self).__name__} is not fitted yet; call fit() first.")
 
     def _log(self, msg):

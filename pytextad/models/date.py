@@ -178,9 +178,9 @@ class DATE(BaseTextDetector):
                 vocab = {w.rstrip("\n"): i for i, w in enumerate(open(tok, encoding="utf-8"))}
                 try:                                   # transformers >= 5
                     tok = BertTokenizerFast(vocab=vocab, do_lower_case=True)
-                except TypeError:
+                except TypeError:  # pragma: no cover  (transformers 4.x)
                     tok = None
-                if tok is None or len(tok) < len(vocab):  # transformers 4.x
+                if tok is None or len(tok) < len(vocab):  # pragma: no cover  (transformers 4.x)
                     tok = BertTokenizerFast(vocab_file=self.tokenizer, do_lower_case=True)
             else:
                 tok = AutoTokenizer.from_pretrained(tok, use_fast=True, cache_dir=self.cache_dir)
@@ -304,6 +304,7 @@ class DATE(BaseTextDetector):
     # ------------------------------------------------------------------ inference
     @torch.no_grad()
     def _score(self, X: List[Text], batch_size=64):
+        self._check_fitted("net_")
         self.net_.eval()
         enc = self._encode(X)
         jobs = [(d, s, w) for d, (ids, _) in enumerate(enc) for s, w in self._windows(ids) if len(w) > 0]

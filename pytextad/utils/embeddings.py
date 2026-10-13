@@ -33,7 +33,7 @@ def _load(model_name_or_path, cache_dir, dtype, device):
     tok.padding_side = "right"
     try:                                    # transformers >= 4.56 / 5.x
         model = AutoModel.from_pretrained(model_name_or_path, dtype=dtype, cache_dir=cache_dir)
-    except TypeError:
+    except TypeError:  # pragma: no cover  (older transformers)
         model = AutoModel.from_pretrained(model_name_or_path, torch_dtype=dtype, cache_dir=cache_dir)
     device = device or ("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device).eval()

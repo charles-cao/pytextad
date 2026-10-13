@@ -3,6 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/pytextad?label=pypi)](https://pypi.org/project/pytextad/)
 [![Documentation](https://img.shields.io/readthedocs/pytextad?label=docs)](https://pytextad.readthedocs.io)
 [![Tests](https://github.com/charles-cao/pytextad/actions/workflows/tests.yml/badge.svg)](https://github.com/charles-cao/pytextad/actions/workflows/tests.yml)
+[![Coverage](https://codecov.io/gh/charles-cao/pytextad/graph/badge.svg)](https://codecov.io/gh/charles-cao/pytextad)
 [![License](https://img.shields.io/badge/license-BSD--2--Clause-blue.svg)](LICENSE)
 
 **PyTextAD** is a Python library for detecting anomalies in text, both whole anomalous

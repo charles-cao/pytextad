@@ -7,3 +7,6 @@ data/
 tests/verification/reference/
 .pytest_cache/
 docs/generated/
+.coverage
+coverage.xml
+htmlcov/

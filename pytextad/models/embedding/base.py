@@ -1,4 +1,4 @@
-"""Common shell for anomaly detector for embeddingss taken from their authors' code."""
+"""Common shell for embedding detectors taken from their authors' code."""
 import abc
 
 import numpy as np

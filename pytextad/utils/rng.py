@@ -17,7 +17,7 @@ def seed_everything(seed):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    if torch.cuda.is_available():
+    if torch.cuda.is_available():  # pragma: no cover  (GPU only)
         torch.cuda.manual_seed_all(seed)
 
 
@@ -38,7 +38,7 @@ def preserve_rng():
         random.setstate(py)
         np.random.set_state(npy)
         torch.set_rng_state(cpu)
-        if cuda is not None:
+        if cuda is not None:  # pragma: no cover  (GPU only)
             torch.cuda.set_rng_state_all(cuda)
 
 

@@ -2,17 +2,52 @@ name: tests
 on: [push, pull_request]
 jobs:
   test:
+    name: ${{ matrix.os }}, Python ${{ matrix.python }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         python: ["3.9", "3.12"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Install PyTorch (CPU)
+        if: runner.os != 'macOS'
+        run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Install PyTorch (macOS)
+        if: runner.os == 'macOS'
+        run: pip install torch
       - run: pip install -e ".[test]"
+      - name: Run tests
+        if: ${{ !(matrix.os == 'ubuntu-latest' && matrix.python == '3.12') }}
+        run: pytest
+      - name: Run tests with coverage
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.12' }}
+        run: pytest --cov --cov-report=xml --cov-report=term --cov-fail-under=95
+      - name: Upload coverage
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.12' }}
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
+  minimum-versions:
+    # the oldest versions accepted by pyproject.toml
+    name: minimum dependency versions (Python 3.9)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+      - run: pip install "torch==1.13.1" --index-url https://download.pytorch.org/whl/cpu
+      - run: >
+          pip install "transformers==4.30.0" "tokenizers<0.14" "huggingface_hub==0.20.0"
+          "numpy==1.22.4" "scipy<1.10" "scikit-learn==1.0.2"
+          "pytest>=7" "pyod==2.0.0" "pandas<2" "matplotlib<3.8"
+      - run: pip install --no-deps -e .
       - run: pytest

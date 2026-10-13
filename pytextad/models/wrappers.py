@@ -40,7 +40,7 @@ def _seed(wrapper):
 
 
 class DocumentDetector(BaseTextDetector):
-    """Use any anomaly detector for embeddings (e.g. SIK, or a PyOD detector :cite:`zhao2019pyod`) on document embeddings.
+    """Use any embedding detector (e.g. SIK, or a PyOD detector :cite:`zhao2019pyod`) on document embeddings.
 
     With document vectors already computed, the embedding detectors of PyTextAD can be used
     directly (``SIK().fit(X).decision_function(X_test)``). This wrapper is useful to embed
@@ -97,7 +97,7 @@ class DocumentDetector(BaseTextDetector):
 
 
 class TokenDetector(BaseTextDetector):
-    """Use any anomaly detector for embeddings (e.g. TokenCore, or a PyOD detector :cite:`zhao2019pyod`) on token embeddings.
+    """Use any embedding detector (e.g. TokenCore, or a PyOD detector :cite:`zhao2019pyod`) on token embeddings.
 
     The detector is fitted on the vectors of all training documents together and scores
     every vector; a document's score aggregates its token scores.

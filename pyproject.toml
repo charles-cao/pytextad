@@ -27,8 +27,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest>=7", "pyod>=2", "pandas", "matplotlib"]
-docs = ["sphinx>=7", "furo", "myst-parser"]
+test = ["pytest>=7", "pytest-cov", "pyod>=2", "pandas", "matplotlib"]
+docs = ["sphinx>=7", "sphinx-rtd-theme>=2", "myst-parser", "sphinxcontrib-bibtex>=2.6"]
 
 [project.urls]
 Homepage = "https://github.com/charles-cao/pytextad"
@@ -43,3 +43,12 @@ include = ["pytextad*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--ignore=tests/verification"
+
+[tool.coverage.run]
+source = ["pytextad"]
+# third-party code kept unchanged; checked against the originals by the parity tests
+omit = ["pytextad/models/embedding/_vendor/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true

@@ -77,6 +77,7 @@ Continue with :doc:`quickstart`.
    :caption: Other
 
    faithfulness
+   contributing
    changelog
    citing
    references

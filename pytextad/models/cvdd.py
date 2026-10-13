@@ -240,6 +240,7 @@ class CVDD(BaseTextDetector):
     # ------------------------------------------------------------------ inference
     @torch.no_grad()
     def _forward_all(self, X):
+        self._check_fitted("net_")
         X = self._check(X)
         self.net_.eval()
         D, A_all = [], []
@@ -266,6 +267,7 @@ class CVDD(BaseTextDetector):
     @torch.no_grad()
     def token_scores(self, X):
         """Token scores: cosine distance of each token to its nearest context vector (extension, not in the paper)."""
+        self._check_fitted("net_")
         X = self._check(X)
         C = F.normalize(self.net_.c.detach(), dim=1).cpu().numpy()
         out = []

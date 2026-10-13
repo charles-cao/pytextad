@@ -6,6 +6,14 @@
   (embedding detectors take document vectors directly); training on normal documents only in
   the home page example.
 - How to use detectors from other libraries (PyOD) in the Quick Start and README.
+- CVDD, DATE and FATE raise a clear "not fitted" error when used before `fit` (they raised
+  an `AttributeError`).
+- Tests: PyTextAD's own code is fully covered (third-party code in `_vendor` is checked by
+  the parity tests instead); coverage report in CI.
+- CI on Linux, Windows and macOS, and with the oldest supported dependency versions
+  (Python 3.9, torch 1.13, transformers 4.30).
+- `CONTRIBUTING.md` (also in the documentation), code of conduct, issue and pull request
+  templates.
 - CHANGELOG: everything shipped in 0.3.0 listed under 0.3.0.
 
 ## 0.3.0
