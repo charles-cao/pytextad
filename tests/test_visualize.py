@@ -49,3 +49,15 @@ def test_with_a_token_detector(tiny_bert):
     test = [["stock", "player", "score", "market"]]
     h = highlight(test, det.token_scores(test))
     assert h.html.count("<span") == 4
+
+
+def test_reference_sets_the_colour_scale():
+    ref = [np.array([1.0, 2.0, 3.0]), np.array([2.0, np.nan, 100.0])]     # median 2, 99th pct ~96
+    h = highlight(["normal", "odd"], [2.0, 200.0], reference=ref)
+    assert "rgba(232,89,12,0.00)" in h.html and "rgba(232,89,12,1.00)" in h.html
+    lo, hi = np.percentile([1, 2, 3, 2, 100], [50, 99])
+    mid = highlight(["w"], [(lo + hi) / 2], reference=[1, 2, 3, 2, 100])   # flat reference
+    assert "rgba(232,89,12,0.50)" in mid.html
+    assert "rgba(232,89,12,1.00)" in highlight(["w"], [5.0], reference=ref, vmax=5.0).html  # vmax wins
+    with pytest.raises(ValueError, match="no finite score"):
+        highlight(["w"], [1.0], reference=[np.nan])

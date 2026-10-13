@@ -61,7 +61,11 @@ labelled anomalous are underlined, to compare the scores with the ground truth.
    from pytextad import highlight
 
    docs = test_words[:5]
-   highlight(docs, det.token_scores(docs), labels=test_labels[:5])
+   highlight(docs, det.token_scores(docs), labels=test_labels[:5],
+             reference=det.token_scores(normal_words))   # normal documents not used for training
+
+With ``reference``, a word as typical as a normal word stays white and only words that stand
+out are coloured; without it, the colours span the lowest to the highest score shown.
 
 .. image:: _static/highlight-example.png
    :alt: Words coloured by anomaly score

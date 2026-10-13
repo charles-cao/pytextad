@@ -31,10 +31,26 @@ def _load(model_name_or_path, cache_dir, dtype, device):
     # right padding for every model: with left padding, models with absolute position
     # embeddings (GPT-2, ...) would see shifted positions and give different vectors
     tok.padding_side = "right"
-    try:                                    # transformers >= 4.56 / 5.x
-        model = AutoModel.from_pretrained(model_name_or_path, dtype=dtype, cache_dir=cache_dir)
-    except TypeError:  # pragma: no cover  (older transformers)
-        model = AutoModel.from_pretrained(model_name_or_path, torch_dtype=dtype, cache_dir=cache_dir)
+    # transformers lists every unused weight of the checkpoint (for example BERT's pre-training
+    # heads, which an encoder does not need); that list is hidden, and only missing weights,
+    # which would be left at random values, are reported
+    from transformers.utils import logging as hf_logging
+    verbosity = hf_logging.get_verbosity()
+    hf_logging.set_verbosity_error()
+    try:
+        try:                                # transformers >= 4.56 / 5.x
+            model, info = AutoModel.from_pretrained(model_name_or_path, dtype=dtype, cache_dir=cache_dir,
+                                                    output_loading_info=True)
+        except TypeError:  # pragma: no cover  (older transformers)
+            model, info = AutoModel.from_pretrained(model_name_or_path, torch_dtype=dtype, cache_dir=cache_dir,
+                                                    output_loading_info=True)
+    finally:
+        hf_logging.set_verbosity(verbosity)
+    missing = list(info.get("missing_keys") or [])
+    if missing:
+        warnings.warn(f"{model_name_or_path}: {len(missing)} weights are not in the checkpoint and were "
+                      f"randomly initialised, e.g. {missing[:3]}; the embeddings are not meaningful",
+                      stacklevel=3)
     device = device or ("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device).eval()
     for p in model.parameters():

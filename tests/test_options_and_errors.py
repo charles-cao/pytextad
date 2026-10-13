@@ -236,3 +236,26 @@ def test_encode_words_space_token_and_words_from_subwords(tiny_gpt):
     assert len(ids) == len(wids) and None not in wids and wids[0] == 0 and wids[-1] == 1
     s = words_from_subwords([1.0, 5.0, 2.0, 7.0], [0, None, 1, 1], n_words=3)
     assert s[0] == 1.0 and s[1] == 7.0 and np.isnan(s[2])
+
+
+def test_unused_weights_are_silent_and_missing_weights_warned(tmp_path, recwarn):
+    import json
+    import warnings
+    from transformers import BertConfig, BertForPreTraining, BertModel, BertTokenizerFast
+    vocab = tmp_path / "vocab.txt"
+    vocab.write_text("\n".join(["[PAD]", "[UNK]", "[CLS]", "[SEP]", "[MASK]", "a", "b"]))
+    cfg = BertConfig(vocab_size=7, hidden_size=16, num_hidden_layers=1, num_attention_heads=2,
+                     intermediate_size=32)
+    full = tmp_path / "pretraining"                       # extra pre-training heads: no warning
+    BertTokenizerFast(str(vocab)).save_pretrained(full)
+    BertForPreTraining(cfg).save_pretrained(full)
+    TokenEmbedder(str(full), device=DEV)
+    assert not [w for w in recwarn if "randomly initialised" in str(w.message)]
+    short = tmp_path / "short"                            # one layer saved, two expected
+    BertTokenizerFast(str(vocab)).save_pretrained(short)
+    BertModel(cfg).save_pretrained(short)
+    conf = json.loads((short / "config.json").read_text())
+    conf["num_hidden_layers"] = 2
+    (short / "config.json").write_text(json.dumps(conf))
+    with pytest.warns(UserWarning, match="randomly initialised"):
+        TokenEmbedder(str(short), device=DEV)

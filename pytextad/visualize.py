@@ -32,12 +32,16 @@ class Highlight:
                     "</body></html>\n")
 
 
-def highlight(tokens, scores, labels=None, vmin=None, vmax=None, color=(232, 89, 12), show_scores=True):
+def highlight(tokens, scores, labels=None, reference=None, vmin=None, vmax=None, color=(232, 89, 12),
+              show_scores=True):
     """Colour every word by its anomaly score.
 
     The more anomalous a word, the stronger its background colour. Scores are scaled to
-    [0, 1] with ``vmin`` and ``vmax``, by default the smallest and largest score over all
-    the documents given, so that documents shown together are comparable.
+    [0, 1] between ``vmin`` (no colour) and ``vmax`` (full colour). With ``reference``, the
+    scores of words from normal documents, these are the median and the 99th percentile of
+    the reference scores: words as typical as a normal word stay white and only words that
+    stand out are coloured. Otherwise they are the smallest and largest score over the
+    documents given.
 
     Parameters
     ----------
@@ -49,8 +53,13 @@ def highlight(tokens, scores, labels=None, vmin=None, vmax=None, color=(232, 89,
     labels : array-like, or list of array-like, optional
         True 0/1 word labels; anomalous words are underlined, to compare the scores with
         the ground truth.
+    reference : array-like, or list of array-like, optional
+        Word scores of normal documents that were not used for training (a detector such as
+        TokenCore gives its own training words a score of 0), e.g.
+        ``det.token_scores(normal_docs)``. Sets the colour scale (see above).
     vmin, vmax : float, optional
-        Scores mapped to no colour and to full colour.
+        Scores mapped to no colour and to full colour; they take precedence over
+        ``reference``.
     color : tuple of int, default=(232, 89, 12)
         RGB colour of the highlight.
     show_scores : bool, default=True
@@ -65,7 +74,8 @@ def highlight(tokens, scores, labels=None, vmin=None, vmax=None, color=(232, 89,
     Examples
     --------
     >>> det = TokenDetector(TokenCore(), embedder=TokenEmbedder("bert-base-uncased")).fit(train.tokens)
-    >>> highlight(test.tokens[:5], det.token_scores(test.tokens[:5]), labels=test.token_labels[:5])
+    >>> highlight(test.tokens[:5], det.token_scores(test.tokens[:5]), labels=test.token_labels[:5],
+    ...           reference=det.token_scores(held_out_normal_docs))
     """
     single = len(tokens) == 0 or isinstance(tokens[0], str)
     docs = [tokens] if single else list(tokens)
@@ -78,6 +88,17 @@ def highlight(tokens, scores, labels=None, vmin=None, vmax=None, color=(232, 89,
         if len(t) != len(s) or (lab is not None and len(lab) != len(t)):
             raise ValueError(f"document {i}: {len(t)} words, {len(s)} scores"
                              + ("" if lab is None else f", {len(lab)} labels"))
+    if reference is not None:
+        parts = list(reference)
+        if parts and np.ndim(parts[0]) > 0:                  # one score array per document
+            ref = np.concatenate([np.asarray(r, dtype=float).ravel() for r in parts])
+        else:                                                # one flat array of scores
+            ref = np.asarray(parts, dtype=float)
+        ref = ref[np.isfinite(ref)]
+        if ref.size == 0:
+            raise ValueError("reference has no finite score")
+        vmin = float(np.percentile(ref, 50)) if vmin is None else vmin
+        vmax = float(np.percentile(ref, 99)) if vmax is None else vmax
     finite = np.concatenate([s[np.isfinite(s)] for s in score_docs]) if score_docs else np.array([])
     lo = vmin if vmin is not None else (float(finite.min()) if finite.size else 0.0)
     hi = vmax if vmax is not None else (float(finite.max()) if finite.size else 1.0)
