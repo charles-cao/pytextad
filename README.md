@@ -153,6 +153,10 @@ ds.tokens, ds.token_labels, ds.labels      # words, word labels, document labels
 BSD 2-Clause, except for some third-party code under its own licence (CC BY-SA 4.0, and a
 research-only licence for GOAD); see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
+## Acknowledgements
+
+Parts of the code, tests and documentation were written with the help of Claude (Anthropic).
+
 ## References
 
 [1] L. Ruff, Y. Zemlyanskiy, R. Vandermeulen, T. Schnake, M. Kloft. Self-Attentive, Multi-Context One-Class Classification for Unsupervised Anomaly Detection on Text. *ACL*, 2019.
