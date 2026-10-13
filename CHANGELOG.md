@@ -11,7 +11,7 @@
 - Demo fixes: the English sentences domain failed (its dataset has 270 normal documents,
   fewer than the 400 the demo took); the 75% most typical normal words stay white; a
   misspelling replaces a contraction in the English sentences example.
-- Every reference in the README links to the paper.
+- Every reference in the README, and every reference number in its tables, links to the paper.
 
 ## 0.3.3
 - `highlight`: shows every word coloured by its anomaly score (in Jupyter, or saved as a web

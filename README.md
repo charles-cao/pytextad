@@ -103,9 +103,9 @@ print(format_results({"SIK": result}))     # token and document AUROC, AP, FPR95
 
 | Abbr | Algorithm | Year | Token scores | Ref |
 |---|---|:-:|:-:|:-:|
-| CVDD | Context Vector Data Description | 2019 | yes | [1] |
-| DATE | Detecting Anomalies in Text via Self-Supervision of Transformers | 2021 | yes | [2] |
-| FATE | Few-shot Anomaly Detection in Text with Deviation Learning | 2023 | no | [3] |
+| CVDD | Context Vector Data Description | 2019 | yes | [[1]](https://aclanthology.org/P19-1398) |
+| DATE | Detecting Anomalies in Text via Self-Supervision of Transformers | 2021 | yes | [[2]](https://aclanthology.org/2021.naacl-main.25) |
+| FATE | Few-shot Anomaly Detection in Text with Deviation Learning | 2023 | no | [[3]](https://arxiv.org/abs/2308.11780) |
 
 **Embedding detectors** take one vector per document or per token. Wrapped in
 `TokenDetector`, each of them scores every sub-word, and sub-word scores are combined into
@@ -113,26 +113,26 @@ word scores.
 
 | Abbr | Algorithm | Year | Ref |
 |---|---|:-:|:-:|
-| NormalizingFlow | Planar normalizing flow | 2015 | [4] |
-| DAGMM | Deep Autoencoding Gaussian Mixture Model | 2018 | [5] |
-| GANomaly | Adversarially trained encoder-decoder-encoder | 2018 | [6] |
-| RSRAE | Robust Subspace Recovery AutoEncoder | 2020 | [7] |
-| GOAD | Classification-based anomaly detection with random transformations | 2020 | [8] |
-| DROCC | Distributionally Robust One-Class Classifier | 2020 | [9] |
-| ICL | Internal Contrastive Learning | 2022 | [10] |
-| SLAD | Scale Learning-based Anomaly Detection | 2023 | [11] |
-| DTE | Diffusion Time Estimation (categorical, inverse-gamma, Gaussian, non-parametric) | 2024 | [12] |
-| DDPM | Denoising diffusion model, reconstruction error | 2024 | [12] |
-| MCM | Masked Cell Modeling | 2024 | [13] |
-| DRL | Decomposed Representation Learning | 2025 | [14] |
-| DDAE | Diffusion-Scheduled Denoising Autoencoder | 2025 | [15] |
-| SIK | Simplified Isolation Kernel | 2025 | [16] |
-| ADERH | Ensemble of Random Pairs of Hyperspheres | 2025 | [17] |
-| TCCM | Time-Conditioned Contraction Matching | 2025 | [18] |
-| TokenCore | Nearest-neighbour memory bank of token embeddings | 2026 | [19] |
+| NormalizingFlow | Planar normalizing flow | 2015 | [[4]](https://proceedings.mlr.press/v37/rezende15.html) |
+| DAGMM | Deep Autoencoding Gaussian Mixture Model | 2018 | [[5]](https://openreview.net/forum?id=BJJLHbb0-) |
+| GANomaly | Adversarially trained encoder-decoder-encoder | 2018 | [[6]](https://arxiv.org/abs/1805.06725) |
+| RSRAE | Robust Subspace Recovery AutoEncoder | 2020 | [[7]](https://arxiv.org/abs/1904.00152) |
+| GOAD | Classification-based anomaly detection with random transformations | 2020 | [[8]](https://arxiv.org/abs/2005.02359) |
+| DROCC | Distributionally Robust One-Class Classifier | 2020 | [[9]](https://proceedings.mlr.press/v119/goyal20c.html) |
+| ICL | Internal Contrastive Learning | 2022 | [[10]](https://iclr.cc/virtual/2022/poster/7127) |
+| SLAD | Scale Learning-based Anomaly Detection | 2023 | [[11]](https://proceedings.mlr.press/v202/xu23p.html) |
+| DTE | Diffusion Time Estimation (categorical, inverse-gamma, Gaussian, non-parametric) | 2024 | [[12]](https://arxiv.org/abs/2305.18593) |
+| DDPM | Denoising diffusion model, reconstruction error | 2024 | [[12]](https://arxiv.org/abs/2305.18593) |
+| MCM | Masked Cell Modeling | 2024 | [[13]](https://proceedings.iclr.cc/paper_files/paper/2024/hash/13ec20547d2b1ff3a3a7a7c68a28e742-Abstract-Conference.html) |
+| DRL | Decomposed Representation Learning | 2025 | [[14]](https://proceedings.iclr.cc/paper_files/paper/2025/hash/3da45dddfc85d9c6e962ce95cff0d127-Abstract-Conference.html) |
+| DDAE | Diffusion-Scheduled Denoising Autoencoder | 2025 | [[15]](https://arxiv.org/abs/2508.00758) |
+| SIK | Simplified Isolation Kernel | 2025 | [[16]](https://doi.org/10.18653/v1/2025.findings-emnlp.680) |
+| ADERH | Ensemble of Random Pairs of Hyperspheres | 2025 | [[17]](https://neurips.cc/virtual/2025/poster/115418) |
+| TCCM | Time-Conditioned Contraction Matching | 2025 | [[18]](https://arxiv.org/abs/2510.18328) |
+| TokenCore | Nearest-neighbour memory bank of token embeddings | 2026 | [[19]](https://doi.org/10.1145/3774904.3792952) |
 
 **Wrappers** turn any embedding detector with `fit` and `decision_function`, including those of
-PyOD [20], into a text detector: `DocumentDetector` (one embedding per document) and
+PyOD [[20]](https://jmlr.org/papers/v20/19-011.html), into a text detector: `DocumentDetector` (one embedding per document) and
 `TokenDetector` (one embedding per token).
 
 ```python
