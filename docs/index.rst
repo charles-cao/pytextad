@@ -13,6 +13,8 @@ and the individual tokens that make them anomalous.
 * **Benchmark datasets** with a label for every word, and evaluation at the token and
   document levels. See :doc:`datasets`.
 
+Try it in the browser: `online demo <https://huggingface.co/spaces/Charles-Cao/pytextad>`_.
+
 Installation
 ------------
 

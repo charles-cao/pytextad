@@ -5,6 +5,9 @@ A tutorial notebook walks through a dataset, token- and document-level detection
 highlighted scores and a comparison of detectors; it runs in Google Colab without installing
 anything: `Open in Colab <https://colab.research.google.com/github/charles-cao/pytextad/blob/main/examples/tutorial.ipynb>`_ (``examples/tutorial.ipynb``).
 
+An `online demo <https://huggingface.co/spaces/Charles-Cao/pytextad>`_ colours the words of any text typed in the browser by
+how anomalous they are, for restaurant reviews, SMS messages and English sentences.
+
 The ``examples`` folder of the repository also has three scripts.
 
 ``examples/quickstart.py`` runs CVDD, DATE, FATE and RSRAE on a small AG News subset

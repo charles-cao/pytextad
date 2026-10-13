@@ -13,6 +13,7 @@
 [![Coverage](https://codecov.io/gh/charles-cao/pytextad/graph/badge.svg)](https://codecov.io/gh/charles-cao/pytextad)
 [![License](https://img.shields.io/badge/license-BSD--2--Clause-blue.svg)](LICENSE)
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/charles-cao/pytextad/blob/main/examples/tutorial.ipynb)
+[![Demo](https://img.shields.io/badge/%F0%9F%A4%97%20demo-Space-yellow)](https://huggingface.co/spaces/Charles-Cao/pytextad)
 
 **PyTextAD** is a Python library for detecting anomalies in text, both whole anomalous
 documents and the individual tokens that make them anomalous.
@@ -26,6 +27,8 @@ documents and the individual tokens that make them anomalous.
   document levels.
 
 Documentation: https://pytextad.readthedocs.io
+
+Online demo (no installation): https://huggingface.co/spaces/Charles-Cao/pytextad
 
 ## Citing PyTextAD
 
