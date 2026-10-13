@@ -6,6 +6,8 @@
   words that stand out are coloured.
 - Loading a model no longer prints the list of checkpoint weights the encoder does not use
   (for example BERT's pre-training heads); a warning is given only if weights are missing.
+- Online demo (`space/`) runs on ZeroGPU hardware, the free option for new Spaces, using the
+  CPU only.
 
 ## 0.3.3
 - `highlight`: shows every word coloured by its anomaly score (in Jupyter, or saved as a web

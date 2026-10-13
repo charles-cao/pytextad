@@ -1,3 +1,2 @@
---extra-index-url https://download.pytorch.org/whl/cpu
 torch
-pytextad>=0.3.2
+pytextad>=0.3.3

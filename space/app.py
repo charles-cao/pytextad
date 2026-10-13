@@ -4,9 +4,22 @@ For each domain, TokenCore learns what normal text looks like from normal docume
 PyTextAD dataset. A text typed by the user is split into words; every word gets an anomaly
 score, shown as a colour, and the text gets a score compared with held-out normal documents.
 
+Everything runs on the CPU (one text at a time is fast), so the demo uses no GPU quota.
+On ZeroGPU hardware, which requires a function marked with @spaces.GPU at startup, an
+unused marked function is defined.
+
 Environment variables (for local testing): PYTEXTAD_DEMO_MODEL (encoder, default
 bert-base-uncased), PYTEXTAD_DEMO_N_REF (normal documents per domain, default 300).
 """
+try:                                    # ZeroGPU hardware: must be imported before torch, and
+    import spaces                       # needs one @spaces.GPU function at startup
+
+    @spaces.GPU
+    def _zerogpu_startup_check():
+        """Not called: the demo runs on the CPU."""
+except ImportError:                     # any other hardware, or local runs
+    pass
+
 import os
 import re
 from functools import lru_cache
@@ -40,7 +53,7 @@ DOMAINS = {
 
 @lru_cache(maxsize=None)
 def embedder():
-    return TokenEmbedder(MODEL)
+    return TokenEmbedder(MODEL, device="cpu")
 
 
 @lru_cache(maxsize=None)
