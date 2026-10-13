@@ -13,10 +13,17 @@ The results are printed as one table per dataset and a summary table, and saved 
 
 Detectors are given by name: any embedding detector of PyTextAD (``TokenCore``, ``SIK``,
 ``ADERH``, ``DTEGaussian``, ...), or a PyOD detector as ``pyod:<Class>`` (``pyod:IForest``,
-``pyod:ECOD``, ``pyod:LOF``; needs ``pip install pyod``). A detector that fails (for example
-a missing optional dependency) is reported and skipped.
+``pyod:ECOD``, ``pyod:LOF``; needs ``pip install pyod``). Parameters go in brackets, and the
+same detector can be listed several times with different parameters (quote each one in the
+shell):
+
+    --detectors SIK "SIK(max_samples=8)" "TokenCore(n_neighbors=5, aggregation='mean')"
+
+Each specification is one row of the result tables. A detector that fails (for example a
+missing optional dependency or a misspelled parameter) is reported and skipped.
 """
 import argparse
+import ast
 import csv
 import importlib
 import inspect
@@ -35,15 +42,39 @@ DEFAULT_DETECTORS = ["TokenCore", "SIK", "ADERH", "pyod:IForest", "pyod:ECOD"]
 COLUMNS = [("token", "auroc"), ("token", "ap"), ("document[max]", "auroc"), ("document[mean]", "auroc")]
 
 
-def make_detector(name, device=None):
-    """A fresh detector from its name: a PyTextAD embedding detector or ``pyod:<Class>``."""
+def parse_spec(spec):
+    """Split 'SIK(max_samples=8, n_estimators=100)' into ('SIK', {'max_samples': 8, ...}).
+
+    Only keyword arguments with literal values (numbers, strings, True/False/None, tuples,
+    lists) are accepted; nothing is executed."""
+    prefix = ""
+    if spec.startswith("pyod:"):
+        prefix, spec = "pyod:", spec[len("pyod:"):]
+    try:
+        node = ast.parse(spec.strip(), mode="eval").body
+    except SyntaxError as e:
+        raise ValueError(f"cannot read detector {spec!r}: {e.msg}") from None
+    if isinstance(node, ast.Name):
+        return prefix + node.id, {}
+    if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)) or node.args:
+        raise ValueError(f"cannot read detector {spec!r}; write Name or Name(param=value, ...)")
+    try:
+        kwargs = {k.arg: ast.literal_eval(k.value) for k in node.keywords}
+    except ValueError:
+        raise ValueError(f"cannot read detector {spec!r}: parameter values must be literals") from None
+    return prefix + node.func.id, kwargs
+
+
+def make_detector(spec, device=None):
+    """A fresh detector from a specification: a PyTextAD embedding detector or ``pyod:<Class>``,
+    optionally with parameters, e.g. ``SIK(max_samples=8)`` or ``pyod:IForest(n_estimators=200)``."""
+    name, kwargs = parse_spec(spec)
     if name.startswith("pyod:"):
         cls_name = name.split(":", 1)[1]
         cls = getattr(importlib.import_module(f"pyod.models.{cls_name.lower()}"), cls_name)
     else:
         cls = getattr(pytextad, name)
-    kwargs = {}
-    if device is not None and "device" in inspect.signature(cls).parameters:
+    if device is not None and "device" not in kwargs and "device" in inspect.signature(cls).parameters:
         kwargs["device"] = device
     return cls(**kwargs)
 

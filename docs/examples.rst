@@ -39,8 +39,20 @@ and the embeddings are cached in ``--cache``, so that adding a detector later do
 the data again. Every detector is then evaluated over the seeds given by ``--seeds``.
 
 Detectors are given by name: any embedding detector of PyTextAD (see :doc:`algorithms`), or a
-PyOD detector as ``pyod:<Class>`` (needs ``pip install pyod``). A detector that fails, for
-example because of a missing optional dependency, is reported and the others still run.
+PyOD detector as ``pyod:<Class>`` (needs ``pip install pyod``). Parameters go in brackets,
+with the names of the detector's parameters (see the :doc:`api`), and the same detector can
+be listed several times with different parameters; each specification is one row of the
+tables. In a shell, put each one in quotes:
+
+.. code-block:: bash
+
+   python examples/benchmark.py --datasets restaurant_review \
+       --detectors SIK "SIK(max_samples=8, n_estimators=100)" \
+                   "TokenCore(n_neighbors=5, aggregation='mean')" "pyod:IForest(n_estimators=200)"
+
+Only literal values (numbers, strings, ``True``/``False``/``None``) are accepted. A detector
+that fails, for example because of a missing optional dependency or a misspelled parameter,
+is reported and the others still run.
 ``--pool_vectors`` pools the sub-word vectors of each word before scoring, as in the
 published TokenCore experiments.
 

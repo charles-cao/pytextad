@@ -41,17 +41,21 @@ def test_benchmark_example(tiny_bert, tmp_path, monkeypatch):
     out = tmp_path / "out"
     bench.main(["--datasets", "restaurant_review", "grammar_correction",
                 "--detectors", "TokenCore", "SIK", "pyod:ECOD", "NoSuchDetector",
+                "TokenCore(n_neighbors=3, aggregation='mean')", "SIK(max_samples=4)", "SIK(no_such_param=1)",
                 "--model", path, "--seeds", "0", "--device", DEV,
                 "--cache", str(tmp_path / "cache"), "--out", str(out)])
 
     import csv
     rows = list(csv.DictReader(open(out / "results.csv", encoding="utf-8")))
     ok = [r for r in rows if not r["error"]]
-    assert {r["detector"] for r in ok} == {"TokenCore", "SIK", "pyod:ECOD"}
+    assert {r["detector"] for r in ok} == {"TokenCore", "SIK", "pyod:ECOD",
+                                           "TokenCore(n_neighbors=3, aggregation='mean')", "SIK(max_samples=4)"}
     assert {r["dataset"] for r in ok} == {"restaurant_review", "grammar_correction"}
     assert {r["level"] for r in ok} == {"document", "document[max]", "document[mean]", "token"}
     failed = [r for r in rows if r["error"]]
-    assert len(failed) == 2 and all(r["detector"] == "NoSuchDetector" for r in failed)
+    assert len(failed) == 4
+    assert {r["detector"] for r in failed} == {"NoSuchDetector", "SIK(no_such_param=1)"}
+    assert all("no_such_param" in r["error"] for r in failed if r["detector"].startswith("SIK"))
     md = (out / "results.md").read_text(encoding="utf-8")
     assert "### restaurant_review" in md and "| NoSuchDetector | failed" in md
     tokencore = [float(r["mean"]) for r in ok
@@ -69,3 +73,15 @@ def test_benchmark_split_is_the_paper_split():
     idx = np.random.choice(normal, size=int(len(normal) * 0.5), replace=False)
     assert train.tokens == ds.subset(idx).tokens
     assert len(train) + len(test) == len(ds) and test.labels.sum() == ds.labels.sum()
+
+
+def test_benchmark_detector_specifications():
+    bench = _load("benchmark")
+    assert bench.parse_spec("SIK") == ("SIK", {})
+    assert bench.parse_spec("pyod:IForest(n_estimators=200)") == ("pyod:IForest", {"n_estimators": 200})
+    det = bench.make_detector("TokenCore(n_neighbors=5, aggregation='mean')")
+    assert (det.n_neighbors, det.aggregation) == (5, "mean")
+    assert bench.make_detector("SIK(device='cpu')", device="cuda").device == "cpu"   # explicit wins
+    for bad in ["SIK(8)", "SIK(x=open('f'))", "SIK(", "__import__('os').system('ls')"]:
+        with pytest.raises(ValueError, match="cannot read detector"):
+            bench.parse_spec(bad)
