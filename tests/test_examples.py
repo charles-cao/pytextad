@@ -121,6 +121,7 @@ def test_tutorial_notebook_runs(tiny_bert, monkeypatch):
     cells = ["".join(c["source"]) for c in nb["cells"] if c["cell_type"] == "code"]
     assert cells[0].startswith("!pip install")
     for src in cells[1:]:
-        exec(compile(src.replace("bert-base-uncased", path), "tutorial", "exec"), ns)
+        # repr() keeps a Windows path (backslashes) a valid string literal
+        exec(compile(src.replace('"bert-base-uncased"', repr(path)), "tutorial", "exec"), ns)
     assert ns["highlight"] is not None and len(ns["docs"]) == 5
     assert set(ns["results"]) == {"TokenCore", "SIK", "IForest", "ECOD"}
