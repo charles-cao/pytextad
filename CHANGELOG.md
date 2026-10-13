@@ -12,6 +12,7 @@
 - How to use detectors from other libraries (PyOD) in the Quick Start and README.
 - Up-to-date description of the `evaluate` parameters.
 - Installation: how to upgrade and check the installed version; mirror example for `HF_ENDPOINT`.
+- Logo in the README and the documentation; favicon; social preview image (`docs/_static`).
 
 ## 0.3.1
 - Documentation: document-level examples next to the token-level ones (README, home page,

@@ -31,7 +31,10 @@ html_extra_path = ["_extra"]
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]          # site-verification file for Google Search Console
 html_title = f"PyTextAD {version}"
-html_theme_options = {"navigation_depth": 2, "collapse_navigation": False}
+html_theme_options = {"navigation_depth": 2, "collapse_navigation": False, "logo_only": True,
+                      "style_nav_header_background": "#1E293B"}
+html_logo = "_static/logo-dark.svg"
+html_favicon = "_static/favicon.svg"
 
 
 def _module_docstring_as_literal(app, what, name, obj, options, lines):

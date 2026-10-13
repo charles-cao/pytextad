@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/charles-cao/pytextad/HEAD/docs/_static/logo-dark.png">
+    <img src="https://raw.githubusercontent.com/charles-cao/pytextad/HEAD/docs/_static/logo-light.png" alt="PyTextAD" width="360">
+  </picture>
+</p>
+
 # PyTextAD: Text Anomaly Detection in Python
 
 [![PyPI](https://img.shields.io/pypi/v/pytextad?label=pypi)](https://pypi.org/project/pytextad/)
