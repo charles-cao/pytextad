@@ -30,8 +30,6 @@ def test_demo_detect(tiny_bert, monkeypatch):
     assert summary.endswith("Most anomalous words: player, score.") or summary.endswith("score, player.")
     det, ref_docs, lo, hi = app.reference("Restaurant reviews")
     assert len(ref_docs) == 100 and np.isfinite(ref_docs).all() and lo < hi
-    assert app.doc_score([0.3] * 12 + [0.8] * 3) == pytest.approx(0.8)   # top 20%: 3 of 15 words
-    assert app.doc_score([0.5, np.nan]) == 0.5 and np.isnan(app.doc_score([np.nan]))
 
 
 def test_demo_small_dataset(tiny_bert, monkeypatch):

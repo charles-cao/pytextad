@@ -9,8 +9,8 @@
 - Online demo (`space/`) runs on ZeroGPU hardware, the free option for new Spaces, using the
   CPU only. Linked from the README and the documentation.
 - Demo fixes: the English sentences domain failed (its dataset has 270 normal documents,
-  fewer than the 400 the demo took); a text is scored by its 20% most anomalous words
-  instead of the mean of all words; the 90% most typical normal words stay white.
+  fewer than the 400 the demo took); the 75% most typical normal words stay white; a
+  misspelling replaces a contraction in the English sentences example.
 
 ## 0.3.3
 - `highlight`: shows every word coloured by its anomaly score (in Jupyter, or saved as a web
