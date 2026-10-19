@@ -30,23 +30,6 @@ Documentation: https://pytextad.readthedocs.io
 
 Online demo (no installation): https://huggingface.co/spaces/Charles-Cao/pytextad
 
-## Citing PyTextAD
-
-If you use PyTextAD, please cite it, together with the papers of the detectors you use
-(listed under [References](#references)):
-
-```bibtex
-@software{cao2026pytextad,
-  author = {Cao, Yang},
-  title  = {{PyTextAD}: Text Anomaly Detection in Python},
-  year   = {2026},
-  url    = {https://github.com/charles-cao/pytextad}
-}
-```
-
-If you use the built-in datasets, please also cite *Towards Token-Level Text Anomaly Detection*
-(WWW 2026), listed under [References](#references).
-
 ## Installation
 
 ```bash
@@ -158,6 +141,25 @@ ds.tokens, ds.token_labels, ds.labels      # words, word labels, document labels
 | `hate_speech` | 4,302 | 140 | hateful or offensive words |
 | `olid` | 650 | 30 | offensive words |
 | `restaurant_review2` | 520 | 25 | negative sentiment |
+
+
+## Citing PyTextAD
+
+If you use PyTextAD, please cite it, together with the papers of the detectors you use
+(listed under [References](#references)):
+
+```bibtex
+@software{cao2026pytextad,
+  author = {Cao, Yang},
+  title  = {{PyTextAD}: Text Anomaly Detection in Python},
+  year   = {2026},
+  url    = {https://github.com/charles-cao/pytextad}
+}
+```
+
+If you use the built-in datasets, please also cite *Towards Token-Level Text Anomaly Detection*
+(WWW 2026), listed under [References](#references).
+
 
 ## License
 
