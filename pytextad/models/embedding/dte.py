@@ -47,7 +47,7 @@ class _DTEBase(BaseEmbeddingDetector):
 
 
 class DTECategorical(_DTEBase):
-    """Diffusion Time Estimation, classification variant :cite:`livernoche2024dte`.
+    __doc__ = """Diffusion Time Estimation, classification variant :cite:`livernoche2024dte`.
 
     A network predicts, as a class among ``num_bins`` bins, how much Gaussian noise was added
     to a vector; the anomaly score is the expected predicted noise level of the clean vector.
@@ -86,7 +86,7 @@ class DTECategorical(_DTEBase):
 
 
 class DTEInverseGamma(_DTEBase):
-    """Diffusion Time Estimation, inverse-gamma variant :cite:`livernoche2024dte`.
+    __doc__ = """Diffusion Time Estimation, inverse-gamma variant :cite:`livernoche2024dte`.
 
     Parameters
     ----------
@@ -110,7 +110,7 @@ class DTEInverseGamma(_DTEBase):
 
 
 class DTEGaussian(_DTEBase):
-    """Diffusion Time Estimation, Gaussian (regression) variant :cite:`livernoche2024dte`.
+    __doc__ = """Diffusion Time Estimation, Gaussian (regression) variant :cite:`livernoche2024dte`.
 
     Parameters
     ----------
@@ -174,7 +174,7 @@ class DTENonParametric(BaseEmbeddingDetector):
 
 
 class DDPM(BaseEmbeddingDetector):
-    """Denoising diffusion model used as a reconstruction-based detector :cite:`livernoche2024dte`.
+    __doc__ = """Denoising diffusion model used as a reconstruction-based detector :cite:`livernoche2024dte`.
 
     Vectors are passed through ``reconstruction_t`` reverse diffusion steps; the score is the
     reconstruction error.

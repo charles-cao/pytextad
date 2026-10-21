@@ -259,3 +259,11 @@ def test_unused_weights_are_silent_and_missing_weights_warned(tmp_path, recwarn)
     (short / "config.json").write_text(json.dumps(conf))
     with pytest.warns(UserWarning, match="randomly initialised"):
         TokenEmbedder(str(short), device=DEV)
+
+
+def test_every_public_class_has_a_docstring():
+    """A docstring built by string concatenation is not a docstring; set ``__doc__`` instead."""
+    import pytextad
+    missing = [n for n in dir(pytextad)
+               if isinstance(getattr(pytextad, n), type) and not getattr(pytextad, n).__dict__.get("__doc__")]
+    assert missing == []

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.5
+- `DTECategorical`, `DTEInverseGamma`, `DTEGaussian` and `DDPM` had no docstring (it was built by
+  string concatenation, which Python does not treat as a docstring), so their documentation
+  pages and `help()` were empty. A test now checks that every public class has a docstring.
+
 ## 0.3.4
 - `highlight(..., reference=...)`: the colour scale is set by the word scores of normal
   documents (white at their median, full colour at their 99th percentile), so that only
