@@ -40,14 +40,13 @@ def main():
     ap.add_argument("--model", default="bert-base-uncased")
     ap.add_argument("--cache_dir", default=None, help="Hugging Face cache folder for the encoder")
     ap.add_argument("--device", default=None)
-    ap.add_argument("--retokenize", action="store_true")
     ap.add_argument("--train_ratio", type=float, default=0.5)
     ap.add_argument("--split_seed", type=int, default=42)
     ap.add_argument("--pool_vectors", action="store_true",
                     help="max-pool sub-word vectors per word before scoring (published TokenCore)")
     args = ap.parse_args()
 
-    ds = load_dataset(args.dataset, retokenize=args.retokenize)
+    ds = load_dataset(args.dataset)
     print(ds)
     train_idx, test_idx = split(ds, args.train_ratio, args.split_seed)
     train, test = ds.subset(train_idx), ds.subset(test_idx)
@@ -55,7 +54,7 @@ def main():
 
     pooling = "max" if args.pool_vectors else None
     emb = TokenEmbedder(args.model, word_pooling=pooling, cache_dir=args.cache_dir, device=args.device)
-    tag = (f"{args.dataset}{'_rt' if args.retokenize else ''}_r{args.train_ratio}_s{args.split_seed}_"
+    tag = (f"{args.dataset}_r{args.train_ratio}_s{args.split_seed}_"
            f"{'word' if pooling else 'sub'}_"
            f"{args.model.replace('/', '_').replace(':', '_').replace(chr(92), '_')}")
     X_train = emb.transform(train.tokens, cache=f"{tag}_train.npz")

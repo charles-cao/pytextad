@@ -50,7 +50,8 @@ def token_metrics(token_labels, token_scores):
     Returns
     -------
     dict
-        ``auroc``, ``ap``, ``fpr95`` and ``n_ignored``.
+        ``auroc``, ``ap``, ``fpr95``, ``n_evaluated`` (tokens with a score) and
+        ``n_ignored``.
     """
     if len(token_labels) != len(token_scores):
         raise ValueError(f"{len(token_labels)} label lists but {len(token_scores)} score lists")
@@ -61,6 +62,7 @@ def token_metrics(token_labels, token_scores):
     s = np.concatenate([np.asarray(x, dtype=float) for x in token_scores])
     ok = ~np.isnan(s)
     out = document_metrics(y[ok], s[ok])
+    out["n_evaluated"] = int(ok.sum())
     out["n_ignored"] = int((~ok).sum())
     return out
 
@@ -199,6 +201,6 @@ def format_results(results, digits=4):
         for level, metrics in res.items():
             if level == "runs":
                 continue
-            cells = [f"{m} {v[0]:.{digits}f}±{v[1]:.{digits}f}" for m, v in metrics.items() if m != "n_ignored"]
+            cells = [f"{m} {v[0]:.{digits}f}±{v[1]:.{digits}f}" for m, v in metrics.items() if not m.startswith("n_")]
             lines.append(f"{name:<16} {level:<18} " + "   ".join(cells))
     return "\n".join(lines)

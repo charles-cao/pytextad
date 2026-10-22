@@ -31,50 +31,56 @@ _CITE_TOKENCORE = """@inproceedings{cao2026tokenlevel,
   doi       = {10.1145/3774904.3792952}
 }"""
 
-# name -> where the file lives and what it must contain. ``revision`` pins the Hub commit
-# once the files are uploaded; the checksum guarantees the content either way.
+# Hub commit of the data files. Every word is a unit of the word segmentation ``\w+|[^\w\s]``
+# in normal and anomalous documents alike: an annotated span such as "not fresh" is two words,
+# each labelled 1 (until 0.3.x, spans in anomalous documents were stored as single items, so
+# the number of sub-words of an item revealed its label). Items that no tokenizer turns into
+# a sub-word (lone invisible characters) were removed.
+_REVISION = "main"
+
+# name -> where the file lives and what it must contain. The checksum guarantees the content.
 DATASETS: Dict[str, dict] = {
     "sms_spam": dict(
-        repo_id="Charles-Cao/pytextad", filename="data/sms_spam.jsonl", revision="2af4a013edb8674e6fccb112be39cf789a41047c",
-        sha256="749761cd87eea7b8f0f7b8bc5930d73aeecbe4c4c4be532c9aa558bdaa84bffb",
-        n_documents=4518, n_anomalous=393, n_tokens=81570, n_anomalous_tokens=418,
+        repo_id="Charles-Cao/pytextad", filename="data/sms_spam.jsonl", revision=_REVISION,
+        sha256="e315a7c1881c867bc464307234abb7518734abea36181a570aa83677ad8be16b",
+        n_documents=4518, n_anomalous=393, n_tokens=82197, n_anomalous_tokens=424,
         anomaly="meaningless character sequences injected into SMS messages",
         source="SMS Spam Collection (via NLP-ADBench), annotated in Cao et al., WWW 2026",
         citation=_CITE_TOKENCORE),
     "restaurant_review": dict(
-        repo_id="Charles-Cao/pytextad", filename="data/restaurant_review.jsonl", revision="2af4a013edb8674e6fccb112be39cf789a41047c",
-        sha256="2036fc8d58ddbf5c8718b510dd67f1636e8f6f034a5c01951660397970bb72ab",
-        n_documents=1100, n_anomalous=50, n_tokens=35488, n_anomalous_tokens=282,
+        repo_id="Charles-Cao/pytextad", filename="data/restaurant_review.jsonl", revision=_REVISION,
+        sha256="fb6c53666488b5e2c7009443fe19077c0184e63cc8a9121b795542387db1e0db",
+        n_documents=1100, n_anomalous=50, n_tokens=36222, n_anomalous_tokens=859,
         anomaly="words expressing negative sentiment in otherwise positive reviews",
         source="Google Maps restaurant reviews, collected and annotated in Cao et al., WWW 2026",
         citation=_CITE_TOKENCORE),
     "grammar_correction": dict(
-        repo_id="Charles-Cao/pytextad", filename="data/grammar_correction.jsonl", revision="2af4a013edb8674e6fccb112be39cf789a41047c",
+        repo_id="Charles-Cao/pytextad", filename="data/grammar_correction.jsonl", revision=_REVISION,
         sha256="de0ad483497e0cfdc299898599edbfb430aada09e461b0e1be5a68f2b54bd7ba",
         n_documents=300, n_anomalous=30, n_tokens=2746, n_anomalous_tokens=47,
         anomaly="grammatical errors",
         source="Kaggle grammar-correction (satishgunjal), annotated in Cao et al., WWW 2026",
         citation=_CITE_TOKENCORE),
     "hate_speech": dict(
-        repo_id="Charles-Cao/pytextad", filename="data/hate_speech.jsonl", revision="2af4a013edb8674e6fccb112be39cf789a41047c",
-        sha256="d3979df1dbd00b59a461258a01b40f369a2ef3506eb86ae51a001e3b15dbc8bc",
-        n_documents=4302, n_anomalous=140, n_tokens=99390, n_anomalous_tokens=288,
+        repo_id="Charles-Cao/pytextad", filename="data/hate_speech.jsonl", revision=_REVISION,
+        sha256="d7741418065ac141815df52c62aa957937fbc717cf0ae23f18229e2b99a16341",
+        n_documents=4302, n_anomalous=140, n_tokens=99835, n_anomalous_tokens=484,
         anomaly="hateful or offensive words in tweets",
         source="Tweets from the hate speech and offensive language data of Davidson et al. (ICWSM "
                "2017), token-level annotation by Cao et al.",
         citation=_CITE_TOKENCORE),
     "olid": dict(
-        repo_id="Charles-Cao/pytextad", filename="data/olid.jsonl", revision="2af4a013edb8674e6fccb112be39cf789a41047c",
-        sha256="9855d4f0d295c9520a9672d46f344a692bfee7252658a2e5a62591b94230dd58",
-        n_documents=650, n_anomalous=30, n_tokens=21156, n_anomalous_tokens=58,
+        repo_id="Charles-Cao/pytextad", filename="data/olid.jsonl", revision=_REVISION,
+        sha256="455e4aec3b74e854db6a78c17907cfd086292c7450933ef378edd3a4f08fae1b",
+        n_documents=650, n_anomalous=30, n_tokens=21256, n_anomalous_tokens=133,
         anomaly="offensive words and phrases in tweets",
         source="Tweets from OLID, the Offensive Language Identification Dataset of Zampieri et al. "
                "(NAACL 2019), token-level annotation by Cao et al.",
         citation=_CITE_TOKENCORE),
     "restaurant_review2": dict(
-        repo_id="Charles-Cao/pytextad", filename="data/restaurant_review2.jsonl", revision="2af4a013edb8674e6fccb112be39cf789a41047c",
-        sha256="e5b0329139b85dd742df17099e631a2a5a6d76903347c70e6b31c8218d6ebea4",
-        n_documents=520, n_anomalous=25, n_tokens=33529, n_anomalous_tokens=94,
+        repo_id="Charles-Cao/pytextad", filename="data/restaurant_review2.jsonl", revision=_REVISION,
+        sha256="22b8d843415c0ec5c6c35aba318fe8e2efabdc80a75476d398e7bd8a37ffc7a5",
+        n_documents=520, n_anomalous=25, n_tokens=33764, n_anomalous_tokens=208,
         anomaly="words expressing negative sentiment in otherwise positive reviews",
         source="Reviews of a second restaurant, collected and annotated by Cao et al.",
         citation=_CITE_TOKENCORE),
@@ -185,14 +191,12 @@ class TextADDataset:
 
     # --------------------------------------------------------------------- transforms
     def retokenize(self):
-        """Split every word into ``\\w+`` runs and single punctuation marks (the regex the
-        normal documents of the TokenCore datasets were split with); each piece keeps the
-        label of the word it comes from.
+        """Split every word into ``\\w+`` runs and single punctuation marks (the segmentation
+        of the built-in datasets); each piece keeps the label of the word it comes from.
 
-        In the TokenCore datasets, normal documents were split by this regex while the words
-        of anomalous documents are the annotators' spans, which may contain spaces or
-        apostrophes ("not fresh", "it's"). Results in the paper use the original words;
-        ``retokenize`` gives both kinds of documents the same segmentation."""
+        Use it on your own data when anomalous spans are stored as single items ("not
+        fresh"): the evaluation unit must not depend on the labels, otherwise the number of
+        sub-words of an item reveals whether it is anomalous."""
         tokens, labels = [], []
         for words, lab in zip(self.tokens, self.token_labels):
             t, l = [], []
@@ -279,7 +283,7 @@ def _resolve(name):
     return key
 
 
-def load_dataset(name, cache_dir=None, revision=None, retokenize=False):
+def load_dataset(name, cache_dir=None, revision=None):
     """Load a built-in dataset, downloading it from the Hugging Face Hub the first time.
 
     Parameters
@@ -292,8 +296,6 @@ def load_dataset(name, cache_dir=None, revision=None, retokenize=False):
     revision : str, optional
         Hub branch, tag or commit; default: the revision pinned in ``DATASETS``. With an
         explicit revision the checksum and count checks are skipped.
-    retokenize : bool
-        Apply ``TextADDataset.retokenize`` (same word segmentation for all documents).
 
     Returns
     -------
@@ -322,4 +324,14 @@ def load_dataset(name, cache_dir=None, revision=None, retokenize=False):
     got = {k: ds.stats()[k] for k in expected}
     if revision is None and got != expected:
         raise RuntimeError(f"{key}: expected {expected}, read {got}")
-    return ds.retokenize() if retokenize else ds
+    _check_words(ds)
+    return ds
+
+
+def _check_words(ds):
+    """Every word is one unit of the segmentation: no whitespace inside, not empty."""
+    for i, words in enumerate(ds.tokens):
+        for w in words:
+            if not w.strip() or any(c.isspace() for c in w):
+                raise RuntimeError(f"{ds.name}: document {i} has the word {w!r}; words must be "
+                                   "single units without whitespace")

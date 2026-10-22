@@ -234,8 +234,10 @@ def test_encode_words_space_token_and_words_from_subwords(tiny_gpt):
     tok = AutoTokenizer.from_pretrained(tiny_gpt)
     ids, wids = encode_words(tok, ["stock", "zqxj"])               # unseen word: the space is its own token
     assert len(ids) == len(wids) and None not in wids and wids[0] == 0 and wids[-1] == 1
-    s = words_from_subwords([1.0, 5.0, 2.0, 7.0], [0, None, 1, 1], n_words=3)
+    s = words_from_subwords([1.0, 5.0, 2.0, 7.0], [0, None, 1, 1], n_words=3)     # default: max
     assert s[0] == 1.0 and s[1] == 7.0 and np.isnan(s[2])
+    assert words_from_subwords([1.0, 5.0, 2.0, 7.0], [0, None, 1, 1], agg="mean")[1] == 4.5
+    assert words_from_subwords([1.0, 5.0, 2.0, 7.0], [0, None, 1, 1], agg="first")[1] == 2.0
 
 
 def test_unused_weights_are_silent_and_missing_weights_warned(tmp_path, recwarn):

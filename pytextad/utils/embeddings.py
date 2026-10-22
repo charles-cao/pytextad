@@ -149,7 +149,10 @@ class TokenEmbedder(_HFEmbedder):
     word_pooling : {None, "max", "mean", "first"}, default=None
         None returns one vector per sub-word (``TokenDetector`` then combines sub-word
         scores per word); otherwise one vector per word, pooling its sub-word vectors
-        (documents must then be word lists; TokenCore as published uses "max").
+        (documents must then be word lists; TokenCore as published uses "max"). The
+        max-pooled vector of a word split into many sub-words lies away from the vectors of
+        one-sub-word words, which raises its score whatever its meaning; sub-word vectors
+        (None) avoid this.
     device : str or None, default=None
         "cuda" or "cpu"; None picks CUDA when available.
     dtype : torch.dtype, default=torch.float32
@@ -377,8 +380,15 @@ def mean_pool(token_embeddings):
 
 
 def words_from_subwords(scores, word_ids, n_words=None, agg="max"):
-    """Aggregate one document's sub-word scores to word scores (max or mean).
-    Words without any sub-word (e.g. truncated) get NaN."""
+    """Aggregate one document's sub-word scores to word scores.
+
+    ``agg`` is "max", "mean" (average of the word's sub-words) or "first" (score of its
+    first sub-word). With "max", a word split into more sub-words gets more draws and a
+    higher score on average: if sub-word scores are uniform on [0, 1], the expected maximum
+    is 1/2 for one sub-word, 2/3 for two and 3/4 for three. Words without any sub-word
+    (e.g. truncated) get NaN."""
+    if agg not in ("mean", "first", "max"):
+        raise ValueError("subword_aggregation must be 'max', 'mean' or 'first'")
     valid = [w for w in word_ids if w is not None]
     n = n_words if n_words is not None else (max(valid) + 1 if valid else 0)
     out = np.full(n, -np.inf) if agg == "max" else np.zeros(n)
@@ -386,7 +396,12 @@ def words_from_subwords(scores, word_ids, n_words=None, agg="max"):
     for s, w in zip(scores, word_ids):
         if w is None:
             continue
-        out[w] = max(out[w], s) if agg == "max" else out[w] + s
+        if agg == "max":
+            out[w] = max(out[w], s)
+        elif agg == "mean":
+            out[w] += s
+        elif cnt[w] == 0:                                   # first
+            out[w] = s
         cnt[w] += 1
     if agg == "mean":
         out = out / np.maximum(cnt, 1)
@@ -399,9 +414,16 @@ def align_labels(token_labels, ids):
 
     ``ids`` is the second output of ``TokenEmbedder.transform`` (sub-word or word mode).
     The result is aligned with ``TokenDetector.token_scores`` given the ``(embeddings, ids)``
-    pair: words cut off by ``max_length`` are dropped."""
-    out = []
+    pair: words cut off by ``max_length`` (or that the tokenizer turns into no sub-word) are
+    left out of the evaluation, and a warning gives their number."""
+    out, dropped, total = [], 0, 0
     for lab, i in zip(token_labels, ids):
+        lab = np.asarray(lab)
         kept = sorted({w for w in i if w is not None})
-        out.append(np.asarray(lab)[kept])
+        out.append(lab[kept])
+        dropped += len(lab) - len(kept)
+        total += len(lab)
+    if dropped:
+        warnings.warn(f"{dropped} of {total} words have no vector (cut off by max_length or no "
+                      f"sub-word) and are left out of the evaluation", stacklevel=2)
     return out

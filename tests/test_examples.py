@@ -26,7 +26,7 @@ def _toy(seed, n=40, n_anom=8):
         t = list(rng.choice(WORDS[:5], rng.randint(4, 9)))
         lab = [0] * len(t)
         if i >= n - n_anom:                     # anomalies: words never seen in normal documents
-            t[1], lab[1] = "player score", 1
+            t[1], lab[1] = "player", 1
         tokens.append(t)
         labels.append(lab)
     return TextADDataset.from_lists(tokens, labels, name=f"toy{seed}")
@@ -37,7 +37,7 @@ def test_benchmark_example(tiny_bert, tmp_path, monkeypatch):
     bench = _load("benchmark")
     path, _ = tiny_bert
     toys = {"restaurant_review": _toy(0), "grammar_correction": _toy(1)}
-    monkeypatch.setattr(bench, "load_dataset", lambda name, retokenize=False: toys[name])
+    monkeypatch.setattr(bench, "load_dataset", lambda name: toys[name])
     out = tmp_path / "out"
     bench.main(["--datasets", "restaurant_review", "grammar_correction",
                 "--detectors", "TokenCore", "SIK", "pyod:ECOD", "NoSuchDetector",
@@ -75,24 +75,18 @@ def test_benchmark_split_is_the_paper_split():
     assert len(train) + len(test) == len(ds) and test.labels.sum() == ds.labels.sum()
 
 
-def test_benchmark_whole_dataset_and_retokenize(tiny_bert, tmp_path, monkeypatch):
+def test_benchmark_whole_dataset(tiny_bert, tmp_path, monkeypatch):
     bench = _load("benchmark")
     ds = _toy(0)
     train, test = bench.split(ds, 0, 42)
     assert train is ds and test is ds                     # contaminated setting
     path, _ = tiny_bert
-    calls = []
-
-    def load(name, retokenize=False):
-        calls.append(retokenize)
-        return _toy(0).retokenize() if retokenize else _toy(0)
-    monkeypatch.setattr(bench, "load_dataset", load)
+    monkeypatch.setattr(bench, "load_dataset", lambda name: _toy(0))
     bench.main(["--datasets", "restaurant_review", "--detectors", "TokenCore", "--model", path,
-                "--seeds", "0", "--train_ratio", "0", "--retokenize", "--device", DEV,
+                "--seeds", "0", "--train_ratio", "0", "--device", DEV,
                 "--cache", str(tmp_path / "cache"), "--out", str(tmp_path / "out")])
-    assert calls == [True]
     cached = os.listdir(tmp_path / "cache" / os.path.basename(os.path.normpath(path)))
-    assert cached and all(f.startswith("restaurant_review_rt_r0.0") for f in cached)
+    assert cached and all(f.startswith("restaurant_review_r0.0") for f in cached)
     assert "TokenCore" in (tmp_path / "out" / "results.md").read_text(encoding="utf-8")
 
 

@@ -54,8 +54,8 @@ the training words, and evaluate at the token and document levels.
 The output has one line per level, each with AUROC, AP and FPR at 95 % TPR as mean and
 standard deviation over the seeds:
 
-* ``token``: all test words pooled together (a word's score is the maximum over its
-  sub-words);
+* ``token``: all test words pooled together (a word's score is the maximum of its sub-word
+  scores); ``n_evaluated`` gives the number of words with a score;
 * ``document[max]`` and ``document[mean]``: each document scored by the maximum or the
   mean of its word scores;
 * ``document``: the detector's own document score (here the same as ``document[max]``).
@@ -72,12 +72,12 @@ Built-in datasets
 ======================  =========  =========  ========  =================  ===========================
 Name                    Documents  Anomalous  Words     Anomalous words    Anomaly
 ======================  =========  =========  ========  =================  ===========================
-``sms_spam``            4,518      393        81,570    418                injected gibberish
-``restaurant_review``   1,100      50         35,488    282                negative sentiment
+``sms_spam``            4,518      393        82,197    424                injected gibberish
+``restaurant_review``   1,100      50         36,222    859                negative sentiment
 ``grammar_correction``  300        30         2,746     47                 grammatical errors
-``hate_speech``         4,302      140        99,390    288                hateful or offensive words
-``olid``                650        30         21,156    58                 offensive words
-``restaurant_review2``  520        25         33,529    94                 negative sentiment
+``hate_speech``         4,302      140        99,835    484                hateful or offensive words
+``olid``                650        30         21,256    133                offensive words
+``restaurant_review2``  520        25         33,764    208                negative sentiment
 ======================  =========  =========  ========  =================  ===========================
 
 The first three are the datasets of *Towards Token-Level Text Anomaly Detection* (Cao et al.,
@@ -93,12 +93,18 @@ evaluate on identical data. Set ``HF_ENDPOINT`` to use a mirror.
 Word segmentation
 -----------------
 
-In these datasets (all but ``grammar_correction``) the normal documents were split into words by the regular expression
-``\w+|[^\w\s]``, while the words of anomalous documents are the annotators' spans, which can
-contain apostrophes or spaces (``"it's"``, ``"not fresh"``). The default keeps the original
-words, as used in the paper. ``load_dataset(name, retokenize=True)`` (or
-``ds.retokenize()``) splits every span by the same expression, each piece keeping the
-span's label, so that normal and anomalous documents are segmented alike.
+Every document is split into words by the regular expression ``\w+|[^\w\s]``, and every
+word has its own label: an annotated span such as "not fresh" is two words, each labelled 1.
+The evaluation unit therefore does not depend on the labels. Until version 0.3.x, spans in
+anomalous documents were stored as single items while normal documents were split into
+words, so an item made of several words, and thus of many sub-words, was almost always
+anomalous; scores that grow with the number of sub-words (max pooling, or the maximum of
+sub-word scores) were rewarded for it. Lone invisible characters that no tokenizer turns
+into a sub-word were also removed. ``load_dataset`` checks that no word contains
+whitespace.
+
+For your own data, ``ds.retokenize()`` applies the same segmentation, each piece keeping
+the label of the span it comes from.
 
 Your own data
 -------------

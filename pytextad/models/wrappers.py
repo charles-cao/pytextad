@@ -104,9 +104,7 @@ class TokenDetector(BaseTextDetector):
 
     With sub-word vectors (``TokenEmbedder`` without ``word_pooling``, the default) and
     documents given as word lists, every sub-word is scored and the scores of a word's
-    sub-words are combined into the word's score (``subword_aggregation``). The vectors then
-    do not depend on how the words are grouped (for example an annotated span "not fresh"
-    given as one item); the grouping is only used to combine scores. With word vectors
+    sub-words are combined into the word's score (``subword_aggregation``). With word vectors
     (``TokenEmbedder(word_pooling="max")``, as in TokenCore :cite:`cao2026tokencore`) the
     sub-word vectors of each item are pooled first and every item is scored once.
 
@@ -120,8 +118,12 @@ class TokenDetector(BaseTextDetector):
         Otherwise ``X`` is either the ``(embeddings, ids)`` pair returned by
         ``TokenEmbedder.transform`` (scores are then combined per word with ``ids``), or a
         list of ``[n_tokens, dim]`` arrays, one per document (one score per row).
-    subword_aggregation : {"max", "mean"}, default="max"
-        How the scores of a word's sub-words are combined into the word's score.
+    subword_aggregation : {"max", "mean", "first"}, default="max"
+        How the scores of a word's sub-words are combined into the word's score: the
+        maximum, their average, or the score of the first sub-word. The maximum grows with
+        the number of sub-words (on average 1/2, 2/3 and 3/4 for one, two and three uniform
+        scores), which helps for misspellings and gibberish but also raises rare normal
+        words; the mean and the first sub-word do not depend on it.
     aggregation : {"max", "mean", "topk"}, default="max"
         How token scores are combined into the document score.
     k : float, default=0.1
@@ -176,8 +178,6 @@ class TokenDetector(BaseTextDetector):
                 out.append(s)
                 continue
             ids, n_words = lay
-            if self.subword_aggregation not in ("max", "mean"):
-                raise ValueError("subword_aggregation must be 'max' or 'mean'")
             w = words_from_subwords(s, ids, n_words, self.subword_aggregation)
             if n_words is None:
                 w = w[sorted({i for i in ids if i is not None})]

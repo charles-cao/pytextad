@@ -1,6 +1,25 @@
 # Changelog
 
-## 0.3.5
+## 0.4.0
+Results on the built-in datasets change with this version.
+
+- **Datasets: one unit per word.** In four datasets (`restaurant_review`,
+  `restaurant_review2`, `hate_speech`, `olid`) annotated spans of anomalous documents were
+  stored as single items ("not fresh"), while normal documents were split into words. The
+  number of sub-words of an item thus revealed its label, and token-level scores that grow
+  with it (max pooling of sub-word vectors, maximum of sub-word scores) were inflated. Every
+  span is now split by the same expression as the normal documents, each word keeping the
+  span's label; lone invisible characters that produce no sub-word were removed from `olid`.
+  Anomalous words: `sms_spam` 424, `restaurant_review` 859, `hate_speech` 484, `olid` 133,
+  `restaurant_review2` 208 (`grammar_correction` unchanged). `load_dataset` checks that no
+  word contains whitespace; its `retokenize` argument is removed
+  (`TextADDataset.retokenize` remains for your own data), and so is `--retokenize` in the
+  example scripts.
+- `TokenDetector(subword_aggregation="first")`: the score of a word's first sub-word, besides
+  "max" (default) and "mean"; the documentation notes that the maximum grows with the number
+  of sub-words.
+- Token metrics report `n_evaluated`, the number of words with a score, and `align_labels`
+  warns with the number of words left out (cut off by `max_length`, or without sub-word).
 - `DTECategorical`, `DTEInverseGamma`, `DTEGaussian` and `DDPM` had no docstring (it was built by
   string concatenation, which Python does not treat as a docstring), so their documentation
   pages and `help()` were empty. A test now checks that every public class has a docstring.

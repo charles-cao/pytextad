@@ -42,8 +42,7 @@ writes the results as tables:
 
 For every dataset, half of the normal documents are used for training and all other
 documents for testing (``--train_ratio``, ``--split_seed``); ``--train_ratio 0`` trains and
-tests on the whole dataset, and ``--retokenize`` splits the words of every document with one
-rule, as in ``examples/token_level.py``. Every document is embedded once,
+tests on the whole dataset. Every document is embedded once,
 and the embeddings are cached in ``--cache``, so that adding a detector later does not embed
 the data again. Every detector is then evaluated over the seeds given by ``--seeds``.
 

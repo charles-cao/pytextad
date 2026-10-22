@@ -45,7 +45,7 @@ def test_token_metrics_pool_tokens_and_skip_nan():
     scores = [np.array([0.1, 0.9, 0.2]), np.array([0.3, np.nan])]
     m = token_metrics(labels, scores)
     assert m["auroc"] == pytest.approx(roc_auc_score([0, 1, 0, 0], [0.1, 0.9, 0.2, 0.3]))
-    assert m["n_ignored"] == 1
+    assert m["n_ignored"] == 1 and m["n_evaluated"] == 4
     with pytest.raises(ValueError):
         token_metrics([np.array([0, 1])], [np.array([0.2])])
 
@@ -105,23 +105,23 @@ def test_token_detector_with_word_embedder_restores_word_positions(tiny_bert):
 
 
 def test_subword_scores_are_combined_per_word(tiny_bert):
-    """Default: every sub-word is scored and scores are combined per given word. Grouping two
-    words into one item ("bank price") changes neither the vectors nor the scores of the
-    sub-words; the item's score is the max of the two words' scores."""
+    """Every sub-word is scored and the scores of a word's sub-words are combined into one
+    score per word: by default the maximum, or their mean, or the first one."""
     path, _ = tiny_bert
     emb = TokenEmbedder(path, device=DEV)                      # sub-word vectors
     train = [t.split() for t in make_texts(20, WORDS, 3)]
     det = TokenDetector(MeanDistance(), embedder=emb).fit(train)
-    split = [["stock", "bank", "price", "team"]]
-    grouped = [["stock", "bank price", "team"]]
-    s_split, s_grouped = det.token_scores(split)[0], det.token_scores(grouped)[0]
-    assert len(s_split) == 4 and len(s_grouped) == 3
-    assert s_grouped[1] == max(s_split[1], s_split[2])
-    assert s_grouped[0] == s_split[0] and s_grouped[2] == s_split[3]
-    assert np.array_equal(emb.transform(split)[0][0], emb.transform(grouped)[0][0])
-    # "mean" combines by averaging
-    det.subword_aggregation = "mean"
-    assert np.isclose(det.token_scores(grouped)[0][1], np.mean(det.token_scores(split)[0][1:3]))
+    assert det.subword_aggregation == "max"
+    doc = [["stock", "banks", "team"]]                     # the middle word has several sub-words
+    E, ids = emb.transform(doc)
+    sub = det.detector.decision_function(E[0])                 # one score per sub-word
+    mid = [s for s, w in zip(sub, ids[0]) if w == 1]
+    assert len(mid) > 1
+    expected = {"mean": np.mean(mid), "first": mid[0], "max": max(mid)}
+    for how, value in expected.items():
+        det.subword_aggregation = how
+        assert np.isclose(det.token_scores(doc)[0][1], value), how
+        assert np.isclose(det.token_scores(doc)[0][0], sub[0])   # one-sub-word words are unchanged
 
 
 def test_precomputed_pair_matches_text_input(tiny_bert):
@@ -136,7 +136,8 @@ def test_precomputed_pair_matches_text_input(tiny_bert):
         ta = a.token_scores(test)
     pair = emb.transform(test)
     tb = b.token_scores(pair)
-    y = align_labels(labels, pair[1])
+    with pytest.warns(UserWarning, match="words have no vector"):
+        y = align_labels(labels, pair[1])
     for sa, sb, yy in zip(ta, tb, y):
         assert np.array_equal(sa[~np.isnan(sa)], sb) and len(yy) == len(sb)
     assert np.array_equal(a.decision_function(test[:6]), b.decision_function(emb.transform(test[:6])))

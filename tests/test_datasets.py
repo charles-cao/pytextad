@@ -61,13 +61,12 @@ def test_local_formats_roundtrip(tmp_path, fmt):
     assert [l.tolist() for l in back.token_labels] == LABELS
 
 
-@pytest.fixture
-def fake_hub(tmp_path, monkeypatch):
-    """Serve the toy dataset as the built-in "grammar_correction" from a local file."""
+def _serve(tmp_path, monkeypatch, ds):
     f = tmp_path / "toy.jsonl"
-    _ds().to_jsonl(f)
+    ds.to_jsonl(f)
+    s = ds.stats()
     meta = dict(datasets.DATASETS["grammar_correction"], sha256=datasets._sha256(f),
-                n_documents=3, n_anomalous=1, n_tokens=12, n_anomalous_tokens=1)
+                **{k: s[k] for k in ("n_documents", "n_anomalous", "n_tokens", "n_anomalous_tokens")})
     monkeypatch.setitem(datasets.DATASETS, "grammar_correction", meta)
     calls = []
 
@@ -79,17 +78,30 @@ def fake_hub(tmp_path, monkeypatch):
     return f, calls
 
 
+@pytest.fixture
+def fake_hub(tmp_path, monkeypatch):
+    """Serve the toy dataset, one unit per word, as the built-in "grammar_correction"."""
+    return _serve(tmp_path, monkeypatch, _ds().retokenize())
+
+
 def test_load_dataset_from_hub(fake_hub):
     f, calls = fake_hub
     ds = load_dataset("grammar", cache_dir="X")                      # alias
-    assert ds.tokens == DOCS and ds.name == "grammar_correction"
+    assert ds.tokens == _ds().retokenize().tokens and ds.name == "grammar_correction"
     assert calls[0][2] == "dataset" and calls[0][4] == "X"
-    assert load_dataset("grammar_correction", retokenize=True).info["retokenized"]
+
+
+def test_load_dataset_rejects_spans_stored_as_one_word(tmp_path, monkeypatch):
+    """A span such as "not fresh" stored as one item would make the evaluation unit depend
+    on the label; built-in files must have one unit per word."""
+    _serve(tmp_path, monkeypatch, _ds())
+    with pytest.raises(RuntimeError, match="'not fresh'"):
+        load_dataset("grammar_correction")
 
 
 def test_load_dataset_rejects_changed_file(fake_hub):
     f, _ = fake_hub
-    f.write_text(f.read_text().replace('"good"', '"bad"'))
+    f.write_text(f.read_text().replace('"good"', '"bad"'))      # same counts, other content
     with pytest.raises(RuntimeError, match="SHA-256"):
         load_dataset("grammar_correction")
 
@@ -111,8 +123,8 @@ def test_registry_is_consistent():
 
 
 def test_dataset_feeds_word_level_pipeline(tiny_bert):
-    """Word lists with multi-word spans ("bank price") get one vector and one score each,
-    aligned with the labels, so ``evaluate`` can use ``token_labels`` directly."""
+    """Every word of a word list gets one vector and one score, aligned with the labels,
+    so ``evaluate`` can use ``token_labels`` directly."""
     path, _ = tiny_bert
     rng = np.random.RandomState(0)
     vocab = ["stock", "market", "bank", "price", "trade", "goal", "match", "team"]
@@ -121,7 +133,7 @@ def test_dataset_feeds_word_level_pipeline(tiny_bert):
         t = list(rng.choice(vocab, rng.randint(4, 9)))
         lab = [0] * len(t)
         if i % 5 == 0:
-            t.insert(2, "bank price")
+            t.insert(2, "banks")
             lab.insert(2, 1)
         tokens.append(t)
         labels.append(lab)

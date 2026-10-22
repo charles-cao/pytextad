@@ -120,8 +120,7 @@ def run_benchmark(datasets, detectors, embedder, seeds=(0, 1, 2), train_ratio=0.
         paths = [None, None]
         if cache is not None:
             os.makedirs(cache, exist_ok=True)
-            rt = "_rt" if ds.info.get("retokenized") else ""
-            tag = f"{ds_name}{rt}_r{train_ratio}_s{split_seed}_{embedder.word_pooling or 'sub'}"
+            tag = f"{ds_name}_r{train_ratio}_s{split_seed}_{embedder.word_pooling or 'sub'}"
             paths = [os.path.join(cache, f"{tag}_{part}.npz") for part in ("train", "test")]
         X_train = embedder.transform(train.tokens, cache=paths[0])
         X_test = embedder.transform(test.tokens, cache=paths[1])
@@ -140,7 +139,7 @@ def run_benchmark(datasets, detectors, embedder, seeds=(0, 1, 2), train_ratio=0.
                 if level == "runs":
                     continue
                 for metric, (mean, std) in metrics.items():
-                    if metric != "n_ignored":
+                    if not metric.startswith("n_"):
                         rows.append({"dataset": ds_name, "detector": det_name, "level": level,
                                      "metric": metric, "mean": mean, "std": std, "seconds": seconds})
             tok = res["token"]["auroc"][0]
@@ -209,8 +208,6 @@ def main(argv=None):
     ap.add_argument("--seeds", nargs="+", type=int, default=[0, 1, 2])
     ap.add_argument("--train_ratio", type=float, default=0.5,
                     help="share of the normal documents used for training; 0 = train and test on the whole dataset")
-    ap.add_argument("--retokenize", action="store_true",
-                    help="split the words of every document with one rule (see TextADDataset.retokenize)")
     ap.add_argument("--split_seed", type=int, default=42)
     ap.add_argument("--device", default=None)
     ap.add_argument("--model_cache_dir", default=None, help="Hugging Face cache folder for the encoder")
@@ -220,7 +217,7 @@ def main(argv=None):
 
     embedder = TokenEmbedder(args.model, word_pooling="max" if args.pool_vectors else None,
                              device=args.device, cache_dir=args.model_cache_dir)
-    datasets = {name: load_dataset(name, retokenize=args.retokenize) for name in args.datasets}
+    datasets = {name: load_dataset(name) for name in args.datasets}
     rows = run_benchmark(datasets, args.detectors, embedder, seeds=tuple(args.seeds),
                          train_ratio=args.train_ratio, split_seed=args.split_seed,
                          device=args.device, cache=os.path.join(args.cache, _model_tag(args.model)))
