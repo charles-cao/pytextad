@@ -36,7 +36,7 @@ _CITE_TOKENCORE = """@inproceedings{cao2026tokenlevel,
 # each labelled 1 (until 0.3.x, spans in anomalous documents were stored as single items, so
 # the number of sub-words of an item revealed its label). Items that no tokenizer turns into
 # a sub-word (lone invisible characters) were removed.
-_REVISION = "main"
+_REVISION = "331ef3b8f4a2c4a60bedf293ccf17f7e717c7643"
 
 # name -> where the file lives and what it must contain. The checksum guarantees the content.
 DATASETS: Dict[str, dict] = {
